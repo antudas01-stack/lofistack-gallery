@@ -1,0 +1,292 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f6f5fb;
+  --surface: #ffffff;
+  --surface-sunken: #f0eff7;
+  --fg: #17151f;
+  --fg-muted: #5a5768;
+  --line: #e4e2ee;
+  --line-strong: #cdcadc;
+  --accent: #6d4aff;
+  --accent-soft: #eee9ff;
+  --accent-fg: #ffffff;
+  --grad-1: #5b3df5;
+  --grad-2: #b62ccf;
+  --grad-3: #0277b6;
+  --glow: rgb(109 74 255 / 0.18);
+  --grid-dot: rgb(23 21 31 / 0.09);
+  --grid-line: rgb(23 21 31 / 0.06);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #07060c;
+  --surface: #110f1a;
+  --surface-sunken: #0c0a13;
+  --fg: #f5f3ff;
+  --fg-muted: #a7a3ba;
+  --line: #231f33;
+  --line-strong: #383250;
+  --accent: #9b85ff;
+  --accent-soft: #1e1838;
+  --accent-fg: #07060c;
+  --grad-1: #8b6dff;
+  --grad-2: #e879f9;
+  --grad-3: #38bdf8;
+  --glow: rgb(139 109 255 / 0.28);
+  --grid-dot: rgb(245 243 255 / 0.07);
+  --grid-line: rgb(245 243 255 / 0.05);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-fg: var(--accent-fg);
+  --color-grad-1: var(--grad-1);
+  --color-grad-2: var(--grad-2);
+  --color-grad-3: var(--grad-3);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+/* ---------- Brand gradient helpers ---------- */
+
+.text-gradient {
+  background: linear-gradient(100deg, var(--grad-1), var(--grad-2) 50%, var(--grad-3));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ls-gradient-pan 8s ease-in-out infinite alternate;
+}
+
+.bg-brand {
+  background: linear-gradient(120deg, var(--grad-1), var(--grad-2) 55%, var(--grad-3));
+}
+
+/* Darker stops so white text stays above 4.5:1 */
+.bg-brand-strong {
+  background: linear-gradient(120deg, #5b3df5, #a21caf 55%, #0e7490);
+}
+
+@keyframes ls-gradient-pan {
+  to {
+    background-position: 100% center;
+  }
+}
+
+/* Animated gradient border: wrap content in .gradient-ring > .gradient-ring-inner */
+.gradient-ring {
+  position: relative;
+  padding: 1px;
+  background: conic-gradient(from var(--ring-angle, 0deg), var(--grad-1), var(--grad-2), var(--grad-3), var(--grad-1));
+  animation: ls-ring-spin 6s linear infinite;
+}
+
+@property --ring-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes ls-ring-spin {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+
+/* ---------- Backgrounds ---------- */
+
+.stage-grid {
+  background-color: var(--surface-sunken);
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Stage with a soft accent glow behind the component */
+.stage-glow {
+  background-color: var(--surface-sunken);
+  background-image:
+    radial-gradient(closest-side at 50% 50%, var(--glow), transparent 75%),
+    radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size:
+    min(520px, 90%) min(520px, 90%),
+    16px 16px;
+  background-position:
+    center,
+    0 0;
+  background-repeat: no-repeat, repeat;
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* Drifting aurora blobs */
+.aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.aurora::before,
+.aurora::after,
+.aurora > span {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.28;
+}
+.dark .aurora::before,
+.dark .aurora::after,
+.dark .aurora > span {
+  opacity: 0.45;
+}
+.dark .aurora > span {
+  opacity: 0.3;
+}
+.aurora::before {
+  width: 42rem;
+  height: 42rem;
+  top: -22rem;
+  left: -10rem;
+  background: var(--grad-1);
+  animation: ls-drift-a 18s ease-in-out infinite alternate;
+}
+.aurora::after {
+  width: 36rem;
+  height: 36rem;
+  top: -18rem;
+  right: -12rem;
+  background: var(--grad-2);
+  animation: ls-drift-b 22s ease-in-out infinite alternate;
+}
+.aurora > span {
+  width: 30rem;
+  height: 30rem;
+  top: -8rem;
+  left: 40%;
+  background: var(--grad-3);
+  opacity: 0.18;
+  animation: ls-drift-a 26s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes ls-drift-a {
+  to {
+    transform: translate(6rem, 3rem) scale(1.1);
+  }
+}
+@keyframes ls-drift-b {
+  to {
+    transform: translate(-5rem, 4rem) scale(0.95);
+  }
+}
+
+/* ---------- Spotlight card (pointer-following glow) ---------- */
+
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    420px circle at var(--mx, 50%) var(--my, -20%),
+    color-mix(in oklab, var(--accent) 10%, transparent),
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.spotlight::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, -20%),
+    var(--grad-2),
+    var(--grad-1) 40%,
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+.spotlight:hover::before,
+.spotlight:hover::after,
+.spotlight:focus-within::before,
+.spotlight:focus-within::after {
+  opacity: 1;
+}
+
+/* Gentle float for hero showcase pieces */
+.float-slow {
+  animation: ls-float 7s ease-in-out infinite;
+}
+.float-slower {
+  animation: ls-float 9s ease-in-out infinite reverse;
+}
+@keyframes ls-float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-gradient,
+  .gradient-ring,
+  .aurora::before,
+  .aurora::after,
+  .aurora > span,
+  .float-slow,
+  .float-slower {
+    animation: none;
+  }
+}
+
+/* ---------- Shiki dual-theme switch ---------- */
+.shiki {
+  background-color: transparent !important;
+}
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark) !important;
+}
