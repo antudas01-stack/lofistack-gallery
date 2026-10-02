@@ -1,6 +1,6 @@
 # Week 01 submissions
 
-Replace `<LIVE_URL>` with the deployed domain before posting (e.g. `lofistack-gallery.vercel.app`).
+Live site: https://lofistack-gallery.vercel.app
 One post per submission, so three posts this week.
 
 ---
@@ -11,7 +11,7 @@ One post per submission, so three posts this week.
 Week: 01
 Type: loader
 Component: Orbit Loader
-Live: <LIVE_URL>/components/orbit-loader
+Live: lofistack-gallery.vercel.app/components/orbit-loader
 Repo: github.com/antudas01-stack/lofistack-gallery/blob/main/src/components/gallery/orbit-loader.tsx
 Prompt:
 Build a reusable React + TypeScript + Tailwind loader component called OrbitLoader.
@@ -37,7 +37,7 @@ Behaviour:
 Week: 01
 Type: input
 Component: Signal Input
-Live: <LIVE_URL>/components/signal-input
+Live: lofistack-gallery.vercel.app/components/signal-input
 Repo: github.com/antudas01-stack/lofistack-gallery/blob/main/src/components/gallery/signal-input.tsx
 Prompt:
 Build a reusable React 19 + TypeScript + Tailwind v4 input component called SignalInput, designed for async validation (e.g. checking if a username is available).

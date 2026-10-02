@@ -1,5 +1,7 @@
 # LofiStack Gallery
 
+**Live:** https://lofistack-gallery.vercel.app
+
 My component gallery for the **LofiStack 90 Day Build Challenge**: 2 new components every week, 30 across the cycle.
 
 Every component gets its own page at `/components/<slug>` with:
@@ -15,8 +17,8 @@ Every component gets its own page at `/components/<slug>` with:
 
 | Week | Type | Component | Route |
 | --- | --- | --- | --- |
-| 01 | loader | Orbit Loader | `/components/orbit-loader` |
-| 01 | input | Signal Input | `/components/signal-input` |
+| 01 | loader | Orbit Loader | [/components/orbit-loader](https://lofistack-gallery.vercel.app/components/orbit-loader) |
+| 01 | input | Signal Input | [/components/signal-input](https://lofistack-gallery.vercel.app/components/signal-input) |
 
 ## Run locally
 
