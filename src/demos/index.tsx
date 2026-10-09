@@ -8,7 +8,7 @@ import {
   HoldToConfirmButtonStates,
 } from "./hold-to-confirm-button-demo";
 import { SignalInputCard, SignalInputPlayground, SignalInputStates } from "./signal-input-demo";
-import { StreakHeatmapCard, StreakHeatmapPlayground, StreakHeatmapStates } from "./streak-heatmap-demo";
+import { MorphingAreaChartCard, MorphingAreaChartPlayground, MorphingAreaChartStates } from "./morphing-area-chart-demo";
 
 type DemoView = "playground" | "states" | "card";
 
@@ -20,7 +20,11 @@ const DEMOS: Record<string, Record<DemoView, ComponentType>> = {
     states: HoldToConfirmButtonStates,
     card: HoldToConfirmButtonCard,
   },
-  "streak-heatmap": { playground: StreakHeatmapPlayground, states: StreakHeatmapStates, card: StreakHeatmapCard },
+  "morphing-area-chart": {
+    playground: MorphingAreaChartPlayground,
+    states: MorphingAreaChartStates,
+    card: MorphingAreaChartCard,
+  },
 };
 
 /** Client-side lookup so server pages can render a demo by slug. */

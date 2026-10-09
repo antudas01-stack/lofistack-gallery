@@ -38,26 +38,26 @@ Details:
 ```
 Week: 02
 Type: chart
-Component: Streak Heatmap
-Live: antu-lofistack-gallery.vercel.app/components/streak-heatmap
-Repo: github.com/antudas01-stack/lofistack-gallery/blob/main/src/components/gallery/streak-heatmap.tsx
+Component: Morphing Area Chart
+Live: antu-lofistack-gallery.vercel.app/components/morphing-area-chart
+Repo: github.com/antudas01-stack/lofistack-gallery/blob/main/src/components/gallery/morphing-area-chart.tsx
 Prompt:
-Build a reusable React 19 + TypeScript + Tailwind v4 chart component called StreakHeatmap: a GitHub-style activity calendar.
+Build a reusable React 19 + TypeScript + Tailwind v4 chart component called MorphingAreaChart: a premium analytics area chart that morphs between time ranges.
 
-Data: props.data is { date: "YYYY-MM-DD", value: number }[] (sum duplicates). Show `days` days (default 91 = 13 weeks) ending at `end` (default: latest date in data). Do all date math in UTC so server and client render identically.
+Props (typed): title, ranges ({ id, label, points: { label, value }[] }[]), defaultRange, summary ("sum" | "average" | "last"), color, valuePrefix, valueSuffix, higherIsBetter, height, showHeader, showAxis, morphDuration, className.
 
-Layout:
-- CSS grid with 7 rows (weekdays) and grid-auto-flow: column (one column per week). Pad the start with empty cells so rows line up with weekStartsOn (0 = Sun, 1 = Mon).
-- Month labels above the columns that contain the 1st of a month, and Mon/Wed/Fri labels on the left (toggle with showLabels).
-- Five intensity levels from `levels` thresholds (default [1,3,6,10]). Level colors come from one `color` prop via color-mix(in oklab, color N%, transparent). Level 0 is a neutral gray.
-- Optional stats row (showStats): current streak (counting back from the last day, where an empty last day doesn't break it yet), longest streak, and total.
-- Footer: a live readout ("Fri, Oct 9 · 6 commits") that follows hover and focus, plus a Less → More legend (showLegend).
+Rendering (SVG, no chart library):
+- Width follows the container via ResizeObserver; height from props. Padding leaves room for y labels (compact numbers like $1.2k) and x labels (first / middle / last, five when wide).
+- Smooth curve with monotone cubic (Fritsch–Carlson) interpolation so it never overshoots. Sample the curve at a fixed 120 points so ranges with different lengths (7 / 30 / 90) can morph into each other.
+- Glowing 2.5px line (drop-shadow in the line color), a vertical gradient area fill (38% → 0%), dashed gridlines at 0/25/50/75/100% of a "nice" rounded max.
+- Header: title, big compact headline (sum/average/last of the range), ▲/▼ change badge (last vs first point; green when the change is good, red when bad, flipped by higherIsBetter=false; sr-only "Up"/"Down"), and segmented range tabs (radiogroup).
+
+Morph: on tab click, animate from the currently shown shape to the new one over morphDuration ms with easeInOutCubic. Interpolate every sample, the y max and the headline number with requestAnimationFrame. Start it in the click handler (no setState in effects). Skip it under prefers-reduced-motion.
 
 Interaction & accessibility:
-- Each day is a <button> with a full aria-label ("Friday, October 9, 2026: 6 commits"). Use a roving tabindex: one Tab stop, ArrowLeft/Right = ±1 week, ArrowUp/Down = ±1 day, Home/End jump to the ends. Focus-visible outline and hover scale.
-- onSelect(day) fires on click / Enter / Space.
-- The readout is aria-live="polite". The group has an aria-label that explains the arrow keys.
-- Wide ranges scroll horizontally inside the component. No dependencies, and no hardcoded data or colors.
+- Pointer move picks the nearest data point: dashed crosshair, a dot with a soft halo, and a floating tooltip (full formatted value + label) clamped inside the chart.
+- The plot is focusable (role="group" with instructions in its aria-label). ArrowLeft/Right step points, Home/End jump. Values are announced through a polite live region.
+- A visually hidden <table> holds the full data. There's an empty state for ranges with no points. Dark and light mode. No dependencies.
 ```
 
 ---

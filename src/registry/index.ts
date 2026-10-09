@@ -180,69 +180,69 @@ Details:
 - Self-contained: no dependencies, keyframes shipped via a React 19 <style href precedence> tag, animations off under prefers-reduced-motion.`,
   },
   {
-    slug: "streak-heatmap",
-    name: "Streak Heatmap",
+    slug: "morphing-area-chart",
+    name: "Morphing Area Chart",
     type: "chart",
     week: 2,
     addedOn: "2026-10-09",
-    summary: "A GitHub-style activity calendar with streak stats, keyboard navigation and a live day readout.",
+    summary: "A glowing analytics area chart that morphs smoothly between 7D, 30D and 90D, with a hover crosshair.",
     description:
-      "Turns a list of `{ date, value }` points into a calendar heatmap. You get current streak, longest streak and total, a less-to-more legend, and month and weekday labels. Every day is a real button you can reach with arrow keys, and the readout under the chart updates as you hover or move focus. Any color, range, cell size or unit — use it for commits, workouts, sales or a 90-day challenge.",
-    sourcePath: "src/components/gallery/streak-heatmap.tsx",
-    usage: `import { StreakHeatmap } from "@/components/gallery/streak-heatmap";
+      "A dashboard-style area chart with a smooth monotone curve, gradient fill and a glowing line. The headline number and the ▲/▼ change badge sit on top. Switch ranges and both the curve and the number animate to the new data instead of jumping. Hover, or focus and use the arrow keys, to get a crosshair and tooltip. It resizes to its container and works as a full chart or a tiny sparkline.",
+    sourcePath: "src/components/gallery/morphing-area-chart.tsx",
+    usage: `import { MorphingAreaChart } from "@/components/gallery/morphing-area-chart";
 
-<StreakHeatmap
-  label="Commits in the last 13 weeks"
-  data={[
-    { date: "2026-10-07", value: 4 },
-    { date: "2026-10-08", value: 1 },
-    { date: "2026-10-09", value: 6 },
-    // …
+<MorphingAreaChart
+  title="Revenue"
+  valuePrefix="$"
+  defaultRange="30d"
+  ranges={[
+    { id: "7d", label: "7D", points: last7 },   // [{ label: "Oct 9", value: 1920 }, …]
+    { id: "30d", label: "30D", points: last30 },
+    { id: "90d", label: "90D", points: last90 },
   ]}
-  days={91}
-  unit="commit"
-  color="#10b981"
-  onSelect={(day) => openDay(day.date)}
-/>`,
+/>
+
+// Sparkline: no header, no axis
+<MorphingAreaChart title="Visitors" ranges={ranges} height={90} showHeader={false} showAxis={false} />`,
     props: [
-      { name: "data", type: "{ date: string; value: number }[]", required: true, description: "Points with ISO dates (YYYY-MM-DD). Duplicate dates are summed." },
-      { name: "label", type: "string", required: true, description: "Accessible name for the chart." },
-      { name: "end", type: "string", default: "latest date in data", description: "Last day shown (YYYY-MM-DD)." },
-      { name: "days", type: "number", default: "91", description: "How many days to show, counting back from end." },
-      { name: "levels", type: "[number, number, number, number]", default: "[1, 3, 6, 10]", description: "Ascending thresholds for the four intensity levels." },
-      { name: "color", type: "string", default: `"#8b5cf6"`, description: "Base color. Levels are mixed from it with color-mix()." },
-      { name: "unit / unitPlural", type: "string", default: `"contribution"`, description: "Used in the readout, stats and cell labels." },
-      { name: "weekStartsOn", type: "0 | 1", default: "1", description: "0 = Sunday, 1 = Monday." },
-      { name: "cellSize", type: "number", default: "14", description: "Cell size in px (3px gap)." },
-      { name: "showStats / showLegend / showLabels", type: "boolean", default: "true", description: "Toggle the streak stats, legend, and month/weekday labels." },
-      { name: "onSelect", type: "(day) => void", description: "Called when a day is clicked or activated with Enter / Space." },
+      { name: "title", type: "string", required: true, description: "Chart title. Also used for the accessible name and data table caption." },
+      { name: "ranges", type: "{ id; label; points: { label; value }[] }[]", required: true, description: "One dataset per range tab. Ranges can have different lengths; the curve still morphs." },
+      { name: "defaultRange", type: "string", default: "first range", description: "id of the range shown first." },
+      { name: "summary", type: `"sum" | "average" | "last"`, default: `"sum"`, description: "What the headline number shows for the active range." },
+      { name: "color", type: "string", default: `"#8b5cf6"`, description: "Line, glow, gradient fill and focus ring color." },
+      { name: "valuePrefix / valueSuffix", type: "string", default: `""`, description: "Units around every value, e.g. \"$\" or \" ms\"." },
+      { name: "higherIsBetter", type: "boolean", default: "true", description: "Set false for latency, cost or churn, so a rise turns the badge red." },
+      { name: "height", type: "number", default: "240", description: "Plot height in px. Width follows the container." },
+      { name: "showHeader", type: "boolean", default: "true", description: "Title, headline, change badge and range tabs." },
+      { name: "showAxis", type: "boolean", default: "true", description: "Gridlines and axis labels. Turn off with showHeader for a sparkline." },
+      { name: "morphDuration", type: "number", default: "700", description: "Morph animation length in ms. 0 disables it." },
       { name: "className", type: "string", description: "Extra classes for the wrapper." },
     ],
-    states: ["Default", "Hover (cell grows + readout)", "Keyboard focus (outline + readout)", "Busy / sparse data", "Perfect streak", "Empty (no data)", "Compact (no labels, stats or legend)", "Long ranges scroll horizontally"],
+    states: ["Default", "Morphing between ranges", "Hover crosshair + tooltip", "Keyboard focus (arrow keys)", "Good change (green) / bad change (red), respecting higherIsBetter", "Single range (no tabs)", "Empty range", "Sparkline (no header or axis)", "Reduced motion (instant switch)"],
     accessibility: [
-      "Every day is a button with a full label, e.g. “Friday, October 9, 2026: 6 commits”.",
-      "Roving tabindex: one Tab stop, then arrow keys move by day or week, with Home and End for first and last.",
-      "The readout below the chart is a polite live region that follows hover and focus.",
-      "Stats use a definition list, so screen readers hear the label and value together.",
-      "Dates are computed in UTC, so the grid never shifts by time zone or between server and client.",
-      "Long ranges scroll inside the chart, not the page.",
+      "Range tabs are a radiogroup with aria-checked.",
+      "The plot is focusable. Left and right arrows step through the points, and Home and End jump to the ends.",
+      "A polite live region reads the active point, e.g. “Oct 9: $1,920”.",
+      "A visually hidden data table gives screen readers the full series.",
+      "The change badge has hidden text saying “Up” or “Down”, so meaning doesn't rely on color alone.",
+      "prefers-reduced-motion switches ranges instantly with no morph.",
     ],
-    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 chart component called StreakHeatmap: a GitHub-style activity calendar.
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 chart component called MorphingAreaChart: a premium analytics area chart that morphs between time ranges.
 
-Data: props.data is { date: "YYYY-MM-DD", value: number }[] (sum duplicates). Show \`days\` days (default 91 = 13 weeks) ending at \`end\` (default: latest date in data). Do all date math in UTC so server and client render identically.
+Props (typed): title, ranges ({ id, label, points: { label, value }[] }[]), defaultRange, summary ("sum" | "average" | "last"), color, valuePrefix, valueSuffix, higherIsBetter, height, showHeader, showAxis, morphDuration, className.
 
-Layout:
-- CSS grid with 7 rows (weekdays) and grid-auto-flow: column (one column per week). Pad the start with empty cells so rows line up with weekStartsOn (0 = Sun, 1 = Mon).
-- Month labels above the columns that contain the 1st of a month, and Mon/Wed/Fri labels on the left (toggle with showLabels).
-- Five intensity levels from \`levels\` thresholds (default [1,3,6,10]). Level colors come from one \`color\` prop via color-mix(in oklab, color N%, transparent). Level 0 is a neutral gray.
-- Optional stats row (showStats): current streak (counting back from the last day, where an empty last day doesn't break it yet), longest streak, and total.
-- Footer: a live readout ("Fri, Oct 9 · 6 commits") that follows hover and focus, plus a Less → More legend (showLegend).
+Rendering (SVG, no chart library):
+- Width follows the container via ResizeObserver; height from props. Padding leaves room for y labels (compact numbers like $1.2k) and x labels (first / middle / last, five when wide).
+- Smooth curve with monotone cubic (Fritsch–Carlson) interpolation so it never overshoots. Sample the curve at a fixed 120 points so ranges with different lengths (7 / 30 / 90) can morph into each other.
+- Glowing 2.5px line (drop-shadow in the line color), a vertical gradient area fill (38% → 0%), dashed gridlines at 0/25/50/75/100% of a "nice" rounded max.
+- Header: title, big compact headline (sum/average/last of the range), ▲/▼ change badge (last vs first point; green when the change is good, red when bad, flipped by higherIsBetter=false; sr-only "Up"/"Down"), and segmented range tabs (radiogroup).
+
+Morph: on tab click, animate from the currently shown shape to the new one over morphDuration ms with easeInOutCubic. Interpolate every sample, the y max and the headline number with requestAnimationFrame. Start it in the click handler (no setState in effects). Skip it under prefers-reduced-motion.
 
 Interaction & accessibility:
-- Each day is a <button> with a full aria-label ("Friday, October 9, 2026: 6 commits"). Use a roving tabindex: one Tab stop, ArrowLeft/Right = ±1 week, ArrowUp/Down = ±1 day, Home/End jump to the ends. Focus-visible outline and hover scale.
-- onSelect(day) fires on click / Enter / Space.
-- The readout is aria-live="polite". The group has an aria-label that explains the arrow keys.
-- Wide ranges scroll horizontally inside the component. No dependencies, and no hardcoded data or colors.`,
+- Pointer move picks the nearest data point: dashed crosshair, a dot with a soft halo, and a floating tooltip (full formatted value + label) clamped inside the chart.
+- The plot is focusable (role="group" with instructions in its aria-label). ArrowLeft/Right step points, Home/End jump. Values are announced through a polite live region.
+- A visually hidden <table> holds the full data. There's an empty state for ranges with no points. Dark and light mode. No dependencies.`,
   },
 ];
 
