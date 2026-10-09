@@ -375,6 +375,129 @@ Look:
 
 Animation (keyframes via React 19 <style href precedence>): a dark printer slot bar at the top. The paper slides down out of it with a slight overshoot (1.5s), then the stamp thumps in (scale 2.2 → 1). animate=false or prefers-reduced-motion shows it instantly. Empty items show "No items". No dependencies.`,
   },
+  {
+    slug: "dynamic-island-nav",
+    name: "Dynamic Island Nav",
+    type: "navbar",
+    week: 4,
+    addedOn: "2026-10-09",
+    summary: "A floating pill navbar that morphs like the iPhone Dynamic Island for menus, search and live notifications.",
+    description:
+      "A dark floating pill for site navigation. A soft highlight slides to the active link. Hover or open a link that has a sub-menu and the island grows downward into a mega-menu. Tap search and it grows into a search box with suggestions. Push a `notification` and it pops and expands to show the alert, then shrinks back when cleared. The height animates with a CSS grid trick, so there's no measuring and no layout jank.",
+    sourcePath: "src/components/gallery/dynamic-island-nav.tsx",
+    usage: `import { DynamicIslandNav } from "@/components/gallery/dynamic-island-nav";
+
+<DynamicIslandNav
+  logo={<Logo />}
+  activeId={page}
+  onNavigate={setPage}
+  onSearch={(q) => router.push(\`/search?q=\${q}\`)}
+  links={[
+    { id: "home", label: "Home", href: "/" },
+    {
+      id: "work",
+      label: "Work",
+      menu: [
+        { label: "Case studies", description: "Deep dives", href: "/work", icon: <BookIcon /> },
+        { label: "Clients", href: "/clients", icon: <UserIcon /> },
+      ],
+    },
+    { id: "blog", label: "Blog", href: "/blog" },
+  ]}
+  notification={toast}               // { title, message?, icon? } or null
+  onDismissNotification={() => setToast(null)}
+/>`,
+    props: [
+      { name: "links", type: "{ id; label; href?; menu?: { label; description?; href?; icon? }[] }[]", required: true, description: "Top-level links. A link with a menu becomes a button that expands the island." },
+      { name: "activeId / defaultActiveId", type: "string", description: "Controlled or initial active link. The highlight slides to it." },
+      { name: "onNavigate", type: "(id) => void", description: "Called when a link or menu item is chosen." },
+      { name: "logo", type: "ReactNode", description: "Mark in the circle on the left." },
+      { name: "label", type: "string", default: `"Main"`, description: "Accessible name of the <nav> landmark." },
+      { name: "onSearch", type: "(query) => void", description: "Adds the search button. Called on Enter or when a suggestion is clicked." },
+      { name: "notification", type: "{ title; message?; icon? } | null", description: "When set, the island pops and expands to show it. Set null to collapse." },
+      { name: "onDismissNotification", type: "() => void", description: "Adds a dismiss button to the notification." },
+      { name: "className", type: "string", description: "Extra classes for the nav wrapper." },
+    ],
+    states: ["Resting pill", "Active highlight sliding", "Hover / focus on links", "Menu expanded (mega-menu)", "Search expanded with suggestions", "Notification pop + expand", "Collapsing back", "Narrow screens (links scroll inside the pill)"],
+    accessibility: [
+      "A <nav> landmark with a label. The active link has aria-current=\"page\".",
+      "Menu and search triggers are buttons with aria-expanded and aria-controls pointing at the panel.",
+      "ArrowDown on a menu trigger opens it and moves focus to the first item. Esc closes it and returns focus to the trigger.",
+      "The collapsed panel is inert, so hidden links can't be tabbed to.",
+      "Notifications are announced through a polite live region, and the dismiss button has a label.",
+      "All morphing and sliding motion is disabled under prefers-reduced-motion.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 navbar called DynamicIslandNav: a floating dark pill that morphs like the iPhone Dynamic Island.
+
+Props (typed): links ({ id, label, href?, menu?: { label, description?, href?, icon? }[] }[]), activeId / defaultActiveId, onNavigate, logo, label, onSearch, notification ({ title, message?, icon? } | null), onDismissNotification, className.
+
+Look: an inline pill (bg-zinc-950, white/10 ring, big soft shadow, rounded 28px) with a round logo slot, a row of links and a round search button. A white/12 highlight sits behind the active link and slides (left/width transition) to the new one. Measure tab positions with a ResizeObserver on the row (setState in the observer callback, not in the effect body).
+
+Morph: under the row, a panel animates height with grid-template-rows 0fr → 1fr (no JS measuring). It shows one of:
+- menu: a 2-column mega-menu of icon + label + description links (opens on mouse hover or click, closes on pointer-leave after 140ms, outside click or Esc)
+- search: a rounded input with ↵ hint and suggestion chips matched from link and menu labels. Enter calls onSearch.
+- notification: icon, title, message and a dismiss ×. The pill does a quick scale "pop" when it arrives.
+Keep the last panel content in state while collapsing so it doesn't vanish mid-animation. Track the last notification with the "adjust state during render" pattern. Panel children fade in on change.
+
+Accessibility: <nav aria-label>, aria-current on the active link, triggers with aria-expanded and aria-controls, ArrowDown opens a menu and focuses its first item, Esc closes and restores focus, the collapsed panel is inert, a polite live region for notifications, focus-visible rings, and reduced-motion support. No dependencies.`,
+  },
+  {
+    slug: "conversational-form",
+    name: "Conversational Form",
+    type: "form",
+    week: 4,
+    addedOn: "2026-10-09",
+    summary: "A form that feels like a chat: one question at a time, typing dots, validation, going back, and a review before sending.",
+    description:
+      "Turns a boring multi-field form into a conversation. The bot asks one question, shows a typing indicator, and your answer appears as a chat bubble. Questions can use earlier answers (“Nice to meet you, Antu”) or branch on them. It supports text, email, number, multi-line and choice-chip steps. Optional steps get a Skip button, there's a progress bar, and you can go back. At the end, a review card lets you edit any answer before sending.",
+    sourcePath: "src/components/gallery/conversational-form.tsx",
+    usage: `import { ConversationalForm } from "@/components/gallery/conversational-form";
+
+<ConversationalForm
+  title="Start a project"
+  steps={[
+    { id: "name", label: "Name", question: "Hi! What should I call you?" },
+    { id: "email", label: "Email", type: "email", question: (a) => \`Nice to meet you, \${a.name}. Your email?\` },
+    { id: "role", label: "Role", type: "choice", question: "Which sounds like you?", options: ["Designer", "Developer", "Founder"] },
+    { id: "message", label: "Message", type: "textarea", required: false, question: "Anything else?" },
+  ]}
+  onComplete={(answers) => fetch("/api/lead", { method: "POST", body: JSON.stringify(answers) })}
+  doneMessage={(a) => \`Thanks \${a.name}! We'll reply to \${a.email}.\`}
+/>`,
+    props: [
+      { name: "steps", type: "ConversationalStep[]", required: true, description: "{ id, question, label?, type?, options?, placeholder?, required?, validate? }. question can be a function of earlier answers." },
+      { name: "onComplete", type: "(answers) => void | Promise", required: true, description: "Called from the review step. A promise shows “Sending…”, and a rejection shows an error so you can retry." },
+      { name: "title", type: "string", default: `"Let's get started"`, description: "Header title and accessible name." },
+      { name: "avatar", type: "ReactNode", default: `"✦"`, description: "Bot avatar in the bubbles." },
+      { name: "doneMessage", type: "string | (answers) => string", description: "Final bot message after sending." },
+      { name: "typingDelay", type: "number", default: "650", description: "Milliseconds of “typing…” before each question. 0 disables it." },
+      { name: "initialAnswers", type: "Record<string, string>", description: "Resume a conversation. It starts at the first unanswered step." },
+      { name: "maxHeight", type: "number", default: "360", description: "Max height of the chat log in px. It scrolls after that." },
+      { name: "className", type: "string", description: "Extra classes for the card." },
+    ],
+    states: ["Asking (text / email / number / textarea)", "Choice chips", "Typing indicator", "Validation error", "Optional step with Skip", "Going back to edit", "Review summary with Edit", "Sending (spinner)", "Done + Start over"],
+    accessibility: [
+      "The message area is a role=\"log\" live region, so new questions are read aloud.",
+      "The input is labelled by the current question (aria-labelledby).",
+      "Errors set aria-invalid, are linked with aria-describedby, and are announced with role=\"alert\".",
+      "Choice chips are a labelled group of real buttons.",
+      "The progress bar has role=\"progressbar\" with aria-valuenow.",
+      "The input doesn't grab focus on page load, only after you start answering. Motion is disabled under prefers-reduced-motion.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 component called ConversationalForm: a form that asks one question at a time like a chat.
+
+Props (typed): steps (ConversationalStep = { id, label?, question: string | (answers) => string, type?: "text" | "email" | "number" | "textarea" | "choice", options?, placeholder?, required? (default true), validate?: (value, answers) => string | null }), onComplete(answers) (may return a promise), title, avatar, doneMessage (string or function), typingDelay, initialAnswers, maxHeight, className.
+
+Flow:
+- State: answers, current index, status ("asking" | "review" | "sending" | "done"), typing, draft and error. Start at the first unanswered step (supports initialAnswers).
+- On answer: validate (required, email regex, numeric, custom validate) and show the error inline. Otherwise save, show the "typing…" dots for typingDelay ms, then move to the next unanswered step, or to the review if none are left. Questions can use earlier answers (personalised or branching copy).
+- "← Back" un-answers the previous step and prefills the draft. Optional steps show "Skip" and are saved as an empty answer, shown as "Skipped".
+- Review: a bot bubble with a definition list of every answer (label: value) and an Edit button per row. Edit jumps to that step and then returns to the review. "Looks good, send it" calls onComplete. A promise shows a spinner and "Sending…", and a rejection shows an error. Done shows doneMessage and "Start over".
+
+UI: card with title, "N of M" and a progress bar; a scrolling chat log (bot bubbles left with avatar, user bubbles right in indigo, slide-in keyframe, auto-scroll to bottom); a composer with input/textarea + round send button (Enter sends, Shift+Enter makes a new line); choice steps render chips instead.
+
+Accessibility: role="log" aria-live, input aria-labelledby the question, aria-invalid + aria-describedby + role="alert" errors, labelled chip group, progressbar role, no autofocus on page load (only after interaction), reduced-motion support, dark mode. No dependencies.`,
+  },
 ];
 
 export function getComponent(slug: string) {

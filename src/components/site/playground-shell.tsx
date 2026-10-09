@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 
 export function PlaygroundShell({ stage, controls }: { stage: ReactNode; controls: ReactNode }) {
   return (
-    <div className="grid overflow-hidden rounded-3xl border border-line bg-surface shadow-xl shadow-[var(--glow)] lg:grid-cols-[1fr_300px]">
-      <div className="stage-glow relative flex min-h-72 items-center justify-center p-6 sm:min-h-[26rem] sm:p-10">
+    <div className="grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-3xl border border-line bg-surface shadow-xl shadow-[var(--glow)] lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="stage-glow relative flex min-h-72 min-w-0 items-center justify-center p-6 sm:min-h-[26rem] sm:p-10">
         {stage}
       </div>
       <aside
