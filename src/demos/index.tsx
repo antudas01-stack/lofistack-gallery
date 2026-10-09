@@ -2,13 +2,25 @@
 
 import type { ComponentType } from "react";
 import { OrbitLoaderCard, OrbitLoaderPlayground, OrbitLoaderStates } from "./orbit-loader-demo";
+import {
+  HoldToConfirmButtonCard,
+  HoldToConfirmButtonPlayground,
+  HoldToConfirmButtonStates,
+} from "./hold-to-confirm-button-demo";
 import { SignalInputCard, SignalInputPlayground, SignalInputStates } from "./signal-input-demo";
+import { StreakHeatmapCard, StreakHeatmapPlayground, StreakHeatmapStates } from "./streak-heatmap-demo";
 
 type DemoView = "playground" | "states" | "card";
 
 const DEMOS: Record<string, Record<DemoView, ComponentType>> = {
   "orbit-loader": { playground: OrbitLoaderPlayground, states: OrbitLoaderStates, card: OrbitLoaderCard },
   "signal-input": { playground: SignalInputPlayground, states: SignalInputStates, card: SignalInputCard },
+  "hold-to-confirm-button": {
+    playground: HoldToConfirmButtonPlayground,
+    states: HoldToConfirmButtonStates,
+    card: HoldToConfirmButtonCard,
+  },
+  "streak-heatmap": { playground: StreakHeatmapPlayground, states: StreakHeatmapStates, card: StreakHeatmapCard },
 };
 
 /** Client-side lookup so server pages can render a demo by slug. */

@@ -19,6 +19,8 @@ Every component gets its own page at `/components/<slug>` with:
 | --- | --- | --- | --- |
 | 01 | loader | Orbit Loader | [/components/orbit-loader](https://antu-lofistack-gallery.vercel.app/components/orbit-loader) |
 | 01 | input | Signal Input | [/components/signal-input](https://antu-lofistack-gallery.vercel.app/components/signal-input) |
+| 02 | button | Hold-to-Confirm Button | [/components/hold-to-confirm-button](https://antu-lofistack-gallery.vercel.app/components/hold-to-confirm-button) |
+| 02 | chart | Streak Heatmap | [/components/streak-heatmap](https://antu-lofistack-gallery.vercel.app/components/streak-heatmap) |
 
 ## Run locally
 
