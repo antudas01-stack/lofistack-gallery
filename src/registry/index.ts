@@ -244,6 +244,137 @@ Interaction & accessibility:
 - The plot is focusable (role="group" with instructions in its aria-label). ArrowLeft/Right step points, Home/End jump. Values are announced through a polite live region.
 - A visually hidden <table> holds the full data. There's an empty state for ranges with no points. Dark and light mode. No dependencies.`,
   },
+  {
+    slug: "command-palette",
+    name: "Command Palette",
+    type: "modal",
+    week: 3,
+    addedOn: "2026-10-09",
+    summary: "A ⌘K / Ctrl+K launcher with fuzzy search, highlighted matches, groups, shortcuts and full keyboard control.",
+    description:
+      "The quick-action search popup you know from Linear, Vercel and Raycast. Press ⌘K or Ctrl+K anywhere, type a few letters, and fuzzy search finds commands even with gaps (“dpl” finds “Deploy”). Matched letters are highlighted, results are grouped, and a Recent group appears when the search is empty. It's built on the native `<dialog>` element, so you get a real focus trap, Esc to close and an inert background for free.",
+    sourcePath: "src/components/gallery/command-palette.tsx",
+    usage: `import { CommandPalette } from "@/components/gallery/command-palette";
+
+<CommandPalette
+  hotkey="k"                       // ⌘K / Ctrl+K toggles it
+  recentIds={["analytics"]}
+  items={[
+    {
+      id: "deploy",
+      label: "Deploy to production",
+      group: "Actions",
+      icon: <RocketIcon />,
+      shortcut: ["⌘", "D"],
+      keywords: ["ship", "release"],
+      onSelect: () => deploy(),
+    },
+    { id: "settings", label: "Settings", group: "Pages", onSelect: () => router.push("/settings") },
+  ]}
+/>
+
+// Controlled, e.g. from your own search button
+<CommandPalette items={items} open={open} onOpenChange={setOpen} />`,
+    props: [
+      { name: "items", type: "CommandItem[]", required: true, description: "{ id, label, onSelect, group?, icon?, shortcut?, keywords?, hint?, disabled? }" },
+      { name: "open / onOpenChange", type: "boolean / (open) => void", description: "Controlled mode. Leave open undefined and the palette manages itself." },
+      { name: "hotkey", type: "string | null", default: `"k"`, description: "Letter that toggles the palette with ⌘ or Ctrl. null disables it." },
+      { name: "placeholder", type: "string", default: `"Type a command or search…"`, description: "Search input placeholder." },
+      { name: "recentIds", type: "string[]", default: "[]", description: "Item ids shown under Recent while the search is empty." },
+      { name: "loading", type: "boolean", default: "false", description: "Shows a loading row, e.g. while remote results load." },
+      { name: "closeOnSelect", type: "boolean", default: "true", description: "Close after a command runs." },
+      { name: "className", type: "string", description: "Extra classes for the dialog panel." },
+    ],
+    states: ["Closed", "Open (blur backdrop + scale-in)", "Empty query with Recent", "Typing (fuzzy matches highlighted)", "Active row (hover or arrow keys)", "Disabled item (skipped)", "Loading row", "No results"],
+    accessibility: [
+      "Native modal <dialog>: focus is trapped inside, Esc closes it, and the page behind is inert.",
+      "The input is a combobox with aria-controls and aria-activedescendant pointing at the active option.",
+      "Results use the listbox / option / group roles, with aria-selected and aria-disabled.",
+      "Arrow keys wrap around and skip disabled items. Enter runs the active command.",
+      "Shortcut keys have a readable label, e.g. “Shortcut ⌘ D”.",
+      "Clicking the backdrop closes it, and the open animation is disabled under prefers-reduced-motion.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 component called CommandPalette: a ⌘K / Ctrl+K command launcher like Linear or Raycast.
+
+Props (typed): items (CommandItem = { id, label, onSelect, group?, icon?, shortcut?: string[], keywords?: string[], hint?, disabled? }), open + onOpenChange (controlled) or uncontrolled, hotkey (letter used with ⌘/Ctrl, default "k", null disables), placeholder, recentIds, loading, closeOnSelect, className.
+
+Behaviour:
+- Built on the native <dialog> with showModal() for a real focus trap, Esc (via the cancel event) and an inert page. A blurred, dimmed ::backdrop. Clicking the backdrop closes it. Lock page scroll while open. Panel sits 12vh from the top, max 640px wide, with a scale + fade-in keyframe.
+- Global keydown listener toggles it on ⌘/Ctrl + hotkey.
+- Mount the body only while open so the query and active row reset every time.
+- Fuzzy search: subsequence match on the label (bonus for consecutive letters, word starts and exact substrings), falling back to keywords at a lower score. Highlight matched letters with <mark>. Sort by score, then group by item.group. With an empty query, show a "Recent" group from recentIds, then all items grouped.
+- Keyboard: ArrowUp/Down move the active row (wrapping, skipping disabled), Enter runs onSelect, then close if closeOnSelect. Hover also sets the active row. Keep the active row scrolled into view.
+- Rows: icon tile, label + muted hint, <kbd> shortcut chips, and an ↵ icon on the active row. A footer shows ↑↓ navigate, ↵ select, esc close and the result count. A loading row and a "No results for …" empty state.
+
+Accessibility: the input is a combobox (aria-controls, aria-activedescendant, aria-expanded). The list uses listbox/option/group roles with aria-selected and aria-disabled. Dark and light mode, no dependencies, animation off under prefers-reduced-motion.`,
+  },
+  {
+    slug: "receipt-card",
+    name: "Receipt Card",
+    type: "card",
+    week: 3,
+    addedOn: "2026-10-09",
+    summary: "A paper receipt that prints out of a slot, with a torn zig-zag edge, totals, a barcode and a status stamp.",
+    description:
+      "An order confirmation that looks like a real thermal receipt. It slides out of a printer slot, then a PAID, PENDING or REFUNDED stamp thumps on. You pass the items and it does the math: subtotal, discount, tax on the discounted amount, tip and total, all formatted for any currency and locale. The torn edge is a pure-CSS mask, and the barcode is generated from the order id, so each order looks unique.",
+    sourcePath: "src/components/gallery/receipt-card.tsx",
+    usage: `import { ReceiptCard } from "@/components/gallery/receipt-card";
+
+<ReceiptCard
+  merchant="Lofi Coffee Co."
+  orderId="#1042"
+  date="Oct 9, 2026 · 9:41 AM"
+  items={[
+    { name: "Oat latte", quantity: 2, price: 4.5, note: "Extra shot" },
+    { name: "Almond croissant", price: 3.75 },
+  ]}
+  discount={{ label: "LOFI10", amount: 2 }}
+  taxRate={0.08}
+  tip={2}
+  paymentMethod="Visa •••• 4242"
+  status="paid"
+/>`,
+    props: [
+      { name: "merchant", type: "string", required: true, description: "Shop name in the header." },
+      { name: "items", type: "{ name; price; quantity?; note? }[]", required: true, description: "Line items. Quantity defaults to 1." },
+      { name: "orderId / date", type: "string", description: "Shown under the merchant name. orderId also seeds the barcode." },
+      { name: "taxRate", type: "number", default: "0", description: "Applied after discounts, e.g. 0.08 = 8%." },
+      { name: "discount", type: "{ label; amount }", description: "Discount line, capped at the subtotal." },
+      { name: "tip", type: "number", default: "0", description: "Added after tax." },
+      { name: "currency / locale", type: "string", default: `"USD" / "en-US"`, description: "Passed to Intl.NumberFormat for every amount." },
+      { name: "paymentMethod", type: "string", description: "e.g. “Visa •••• 4242”." },
+      { name: "status", type: `"paid" | "pending" | "refunded"`, description: "Adds the rubber stamp." },
+      { name: "footer", type: "string", default: `"Thank you!"`, description: "Closing line. Empty string hides it." },
+      { name: "logo", type: "ReactNode", description: "Icon above the merchant name." },
+      { name: "barcodeValue", type: "string", default: "orderId", description: "Text encoded into the decorative barcode." },
+      { name: "animate", type: "boolean", default: "true", description: "Print-out + stamp animation on mount." },
+      { name: "printer", type: "boolean", default: "true", description: "Show the printer slot the receipt comes out of." },
+      { name: "className", type: "string", description: "Extra classes for the wrapper." },
+    ],
+    states: ["Printing (slides out of the slot)", "Paid / Pending / Refunded stamp", "With discount, tax and tip", "Empty order", "Hover (deeper shadow)", "No printer slot", "Static (animate=false)", "Reduced motion (no animation)"],
+    accessibility: [
+      "An <article> labelled “Receipt from …”.",
+      "Items are a real table with screen-reader-only column headers, and totals are a definition list.",
+      "The stamp includes hidden text, “Status: Paid”.",
+      "The barcode graphic is decorative (aria-hidden); its value is printed as text.",
+      "The paper stays light in dark mode with dark text, so contrast is always high.",
+      "The print and stamp animations are disabled under prefers-reduced-motion.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 component called ReceiptCard: an order confirmation styled as a thermal paper receipt.
+
+Props (typed): merchant, items ({ name, price, quantity?, note? }[]), orderId, date, taxRate, discount ({ label, amount }), tip, currency, locale, paymentMethod, status ("paid" | "pending" | "refunded"), footer, logo, barcodeValue, animate, printer, className.
+
+Math: subtotal = Σ price × quantity. Discount is capped at the subtotal. Tax = (subtotal − discount) × taxRate. Total = subtotal − discount + tax + tip. Format every amount with Intl.NumberFormat(locale, { style: "currency", currency }).
+
+Look:
+- Off-white paper (#fffdf7) with faint ruled lines, a monospace font and dashed dividers. Merchant in spaced uppercase, then order id · date.
+- Bottom torn zig-zag edge made with a CSS mask (conic-gradient(from -45deg at bottom, …) repeated every 14px). A drop-shadow on the wrapper follows the torn shape, and gets deeper on hover.
+- Items in a real <table> (sr-only header), totals in a <dl> with a bold Total row, optional "Paid with …".
+- A decorative SVG barcode whose bar widths come from an FNV-style hash of the order id (deterministic), with the value printed below.
+- Status stamp: rotated rubber stamp (Paid green / Pending amber / Refunded red, thick border, mix-blend-multiply) with sr-only "Status:".
+
+Animation (keyframes via React 19 <style href precedence>): a dark printer slot bar at the top. The paper slides down out of it with a slight overshoot (1.5s), then the stamp thumps in (scale 2.2 → 1). animate=false or prefers-reduced-motion shows it instantly. Empty items show "No items". No dependencies.`,
+  },
 ];
 
 export function getComponent(slug: string) {

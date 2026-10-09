@@ -21,6 +21,8 @@ Every component gets its own page at `/components/<slug>` with:
 | 01 | input | Signal Input | [/components/signal-input](https://antu-lofistack-gallery.vercel.app/components/signal-input) |
 | 02 | button | Hold-to-Confirm Button | [/components/hold-to-confirm-button](https://antu-lofistack-gallery.vercel.app/components/hold-to-confirm-button) |
 | 02 | chart | Morphing Area Chart | [/components/morphing-area-chart](https://antu-lofistack-gallery.vercel.app/components/morphing-area-chart) |
+| 03 | modal | Command Palette | [/components/command-palette](https://antu-lofistack-gallery.vercel.app/components/command-palette) |
+| 03 | card | Receipt Card | [/components/receipt-card](https://antu-lofistack-gallery.vercel.app/components/receipt-card) |
 
 ## Run locally
 
