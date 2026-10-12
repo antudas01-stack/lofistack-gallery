@@ -59,14 +59,16 @@ Accessibility: role="log" aria-live, input aria-labelledby the question, aria-in
 
 ## Post 3 — Agent log
 
-Each agent log must be a different kind of task. Week 1 = coding, Week 2 = browser automation; Week 3 is still open.
-Fill this in with a real task from your work this week.
-
 ```
 Week: 04
-Task: [what you needed done]
-Agent: [Claude / Claude in Chrome / n8n / Zapier / …]
+Task: QA-test my new components before posting them
+Agent: Claude Code (Claude Opus 5.5) driving a browser preview
 Prompt or workflow:
-[paste the prompt or describe the steps]
-Result: [what it produced and what it saved you]
+For every component, the agent wrote scripted interaction tests and ran them in a real browser: keyboard navigation, validation errors, edge cases (disabled items, empty data, async submit), phone width (375px), and light and dark mode. It read the results, fixed what failed, and re-ran the tests until everything passed. Then it ran lint, the type-check and a production build before deploying.
+Result: It caught and fixed 5 real bugs before anyone saw them:
+1) Command Palette highlighted a disabled row first
+2) Receipt Card's PAID stamp covered the date
+3) Dynamic Island Nav's sliding highlight didn't appear on first load
+4) Dynamic Island Nav was wider than a phone screen
+5) The shared playground layout overflowed on phones (fixed for every component page at once)
 ```

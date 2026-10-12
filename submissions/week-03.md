@@ -60,14 +60,12 @@ Animation (keyframes via React 19 <style href precedence>): a dark printer slot 
 
 ## Post 3 — Agent log
 
-Each agent log must be a different kind of task. Week 1 = coding (build + deploy site), Week 2 = browser automation (Vercel domain + redirect).
-Fill this in with a real task from your work this week, e.g. summarizing a client call, cleaning a spreadsheet, writing a QA report.
-
 ```
 Week: 03
-Task: [what you needed done]
-Agent: [Claude / Claude in Chrome / n8n / Zapier / …]
+Task: Pick unique components for the week, without repeating my own types or anything teammates already posted
+Agent: Claude Code (Claude Opus 5.5)
 Prompt or workflow:
-[paste the prompt or describe the steps]
-Result: [what it produced and what it saved you]
+"now make the week 2 task suggest me something unique" / "now prepare the week 3"
+The agent checked which Type labels I'd already used (loader, input, button, chart) and what teammates had posted (Magnetic Button, OTP Input). Then it gave me 4 new options as a multiple-choice question, each with a small ASCII preview of the layout (Command Palette, Receipt Card, Dynamic Island Nav, Spreadsheet Lite). I picked two and it built them. When I didn't like my Streak Heatmap, it ran the same process for charts and I swapped it for the Morphing Area Chart.
+Result: No repeated types and no overlap with teammates. I choose designs from previews before they're built, so I'm not throwing away finished work. The heatmap cost a full rebuild; since switching to previews, Weeks 3 and 4 needed zero redos.
 ```
