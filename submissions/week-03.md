@@ -62,10 +62,13 @@ Animation (keyframes via React 19 <style href precedence>): a dark printer slot 
 
 ```
 Week: 03
-Task: Pick unique components for the week, without repeating my own types or anything teammates already posted
+Task: Component selection and duplicate prevention for the weekly build
 Agent: Claude Code (Claude Opus 5.5)
 Prompt or workflow:
-"now make the week 2 task suggest me something unique" / "now prepare the week 3"
-The agent checked which Type labels I'd already used (loader, input, button, chart) and what teammates had posted (Magnetic Button, OTP Input). Then it gave me 4 new options as a multiple-choice question, each with a small ASCII preview of the layout (Command Palette, Receipt Card, Dynamic Island Nav, Spreadsheet Lite). I picked two and it built them. When I didn't like my Streak Heatmap, it ran the same process for charts and I swapped it for the Morphing Area Chart.
-Result: No repeated types and no overlap with teammates. I choose designs from previews before they're built, so I'm not throwing away finished work. The heatmap cost a full rebuild; since switching to previews, Weeks 3 and 4 needed zero redos.
+1. Audit: The agent reviewed my existing submissions (loader, input, button, chart) and teammates' published components (Magnetic Button, OTP Input) to identify the component types and concepts already taken.
+2. Shortlist: It proposed four original candidates in unused categories: Command Palette (modal), Receipt Card (card), Dynamic Island Nav (navbar) and Spreadsheet Lite (table).
+3. Visual review: Each candidate was presented as a structured choice with a low-fidelity layout preview, so I could approve the design before any code was written.
+4. Build: The two approved components were then built, tested and deployed.
+I applied the same process to replace an earlier component (Streak Heatmap) that didn't meet my design standard. It became the Morphing Area Chart.
+Result: Two original components with no type or concept overlap with my own or my team's submissions. Reviewing previews before development removed rework: the one component approved without a preview needed a full rebuild, while every component approved from a preview since has shipped without revisions.
 ```
