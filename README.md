@@ -25,6 +25,7 @@ Every component gets its own page at `/components/<slug>` with:
 | 03 | card | Receipt Card | [/components/receipt-card](https://antu-lofistack-gallery.vercel.app/components/receipt-card) |
 | 04 | navbar | Dynamic Island Nav | [/components/dynamic-island-nav](https://antu-lofistack-gallery.vercel.app/components/dynamic-island-nav) |
 | 04 | form | Conversational Form | [/components/conversational-form](https://antu-lofistack-gallery.vercel.app/components/conversational-form) |
+| 05 | card | Flip Invitation | [/components/flip-invitation](https://antu-lofistack-gallery.vercel.app/components/flip-invitation) |
 
 ## Run locally
 

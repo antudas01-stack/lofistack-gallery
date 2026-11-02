@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Cinzel, Cormorant_Garamond, Geist, Geist_Mono, Pinyon_Script } from "next/font/google";
 import Script from "next/script";
 import { SiteFooter, SiteHeader } from "@/components/site/site-header";
 import { siteConfig } from "@/site.config";
@@ -14,6 +14,23 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+// Invitation fonts: exposed as the CSS variables FlipInvitation reads. Not preloaded,
+// so the files only download on pages that actually render an invitation.
+const invitationScript = Pinyon_Script({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--inv-font-script",
+  preload: false,
+});
+const invitationSerif = Cormorant_Garamond({
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--inv-font-serif",
+  preload: false,
+});
+const invitationCaps = Cinzel({ subsets: ["latin"], variable: "--inv-font-caps", preload: false });
 
 export const metadata: Metadata = {
   title: {
@@ -31,7 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${invitationScript.variable} ${invitationSerif.variable} ${invitationCaps.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
         <Script id="theme-init" strategy="beforeInteractive">

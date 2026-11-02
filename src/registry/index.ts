@@ -498,6 +498,69 @@ UI: card with title, "N of M" and a progress bar; a scrolling chat log (bot bubb
 
 Accessibility: role="log" aria-live, input aria-labelledby the question, aria-invalid + aria-describedby + role="alert" errors, labelled chip group, progressbar role, no autofocus on page load (only after interaction), reduced-motion support, dark mode. No dependencies.`,
   },
+  {
+    slug: "flip-invitation",
+    name: "Flip Invitation",
+    type: "card",
+    week: 5,
+    addedOn: "2026-11-03",
+    summary: "An elegant event invitation with a gold-foil monogram that flips in 3D to reveal details, a live countdown and RSVP.",
+    description:
+      "A digital invitation for weddings, birthdays and launch parties. The front looks like printed stationery: framed borders, corner flourishes, a calligraphy monogram in shimmering gold foil, and engraved-style capitals. Tap it and the card flips in 3D to the details: date and time in the venue's time zone, the address with a map link, dress code, a live countdown, RSVP buttons, and an Add to Calendar link that downloads a real `.ics` file. It comes in four paper themes and tilts gently toward your mouse.",
+    sourcePath: "src/components/gallery/flip-invitation.tsx",
+    usage: `import { FlipInvitation } from "@/components/gallery/flip-invitation";
+
+<FlipInvitation
+  hosts="Aria Rahman & Leo Das"
+  monogram="A & L"
+  eventDate="2026-12-12T18:00:00+06:00"
+  timeZone="Asia/Dhaka"
+  venue="Rosewood Hall"
+  address="Gulshan, Dhaka"
+  mapUrl="https://maps.google.com/?q=Rosewood+Hall+Dhaka"
+  dressCode="Black tie"
+  rsvpNote="Kindly reply by Nov 30"
+  theme="ivory"                       // ivory | midnight | blush | sage
+  onRsvp={(answer) => saveRsvp(answer)} // "yes" | "maybe" | "no"
+/>`,
+    props: [
+      { name: "hosts", type: "string", required: true, description: "Names on the front. Also used for the default monogram and the calendar title." },
+      { name: "eventDate", type: "string", required: true, description: "ISO date-time with offset, e.g. 2026-12-12T18:00:00+06:00." },
+      { name: "venue", type: "string", required: true, description: "Venue name on the back and in the calendar file." },
+      { name: "timeZone", type: "string", default: `"UTC"`, description: "IANA zone of the event, so every guest sees the venue's local time." },
+      { name: "monogram", type: "string", default: "initials", description: "Large foil text on the front, e.g. \"A & L\" or \"30\"." },
+      { name: "preface / message", type: "string", description: "The small line above the monogram and the italic line under the names." },
+      { name: "address / mapUrl / dressCode / rsvpNote", type: "string", description: "Optional detail rows and footer note." },
+      { name: "durationHours", type: "number", default: "5", description: "Used for the calendar end time and the \"happening now\" state." },
+      { name: "theme", type: `"ivory" | "midnight" | "blush" | "sage"`, default: `"ivory"`, description: "Paper, ink and foil palette." },
+      { name: "onRsvp", type: "(response) => void | Promise", description: "Called with \"yes\", \"maybe\" or \"no\". A promise shows a saving spinner, and a rejection shows an error." },
+      { name: "defaultResponse", type: `"yes" | "maybe" | "no"`, description: "Show a reply that was already given." },
+      { name: "showCalendar", type: "boolean", default: "true", description: "Show the Add to calendar (.ics download) link." },
+      { name: "defaultFlipped", type: "boolean", default: "false", description: "Start on the details side." },
+      { name: "className", type: "string", description: "Extra classes for the wrapper (max 340px wide, 5:7 ratio)." },
+      { name: "--inv-font-script / -serif / -caps", type: "CSS variables", description: "Optional font overrides. The gallery loads Pinyon Script, Cormorant Garamond and Cinzel via next/font." },
+    ],
+    states: ["Front (foil shimmer)", "Hover tilt (mouse)", "Flipping", "Back with countdown", "RSVP saving", "RSVP confirmed (with Change)", "RSVP error", "Happening now", "Past event (RSVP closed)", "4 themes"],
+    accessibility: [
+      "The whole front is one button with a clear label: “Invitation from … Open to see the details.”",
+      "After flipping, focus moves to the “The Details” heading, and flipping back returns focus to the front.",
+      "The hidden side is inert and aria-hidden, so keyboard users never tab into the face they can't see.",
+      "The countdown is a role=\"timer\" that isn't announced every second. RSVP results use role=\"status\" and errors use role=\"alert\".",
+      "Event times are formatted in the venue's time zone, so the server and every guest see the same time.",
+      "The flip transition and foil shimmer are disabled under prefers-reduced-motion.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 card called FlipInvitation: an elegant digital event invitation that flips in 3D.
+
+Props (typed): hosts, monogram (default: initials joined with "&"), preface, message, eventDate (ISO with offset), timeZone (IANA, default "UTC"), durationHours, venue, address, mapUrl, dressCode, rsvpNote, theme ("ivory" | "midnight" | "blush" | "sage"), onRsvp(response: "yes" | "maybe" | "no") (may return a promise), defaultResponse, showCalendar, defaultFlipped, className.
+
+Front (printed stationery): 5:7 portrait card, max 340px. Double inset border (solid + dashed), SVG corner flourishes in all four corners, small spaced-caps preface, a huge italic serif monogram filled with an animated gold-foil gradient (background-clip:text, slow sheen), a diamond flourish divider, host names, an italic message, the date in spaced caps and a "Tap to open" pill. The whole face is one <button>.
+
+Back: "The Details" heading with a flip-back button. A definition list for When (long date + time with zone name, formatted with Intl in the event's timeZone), Where (venue, address, "Open in Maps ↗") and Dress code. A 4-tile live countdown (days/hours/min/sec), driven by a shared 1-second clock via useSyncExternalStore with a null server snapshot, so SSR is stable. After the start time it shows "Happening right now ✦", and after the end "This celebration has passed" with RSVP disabled. RSVP: Accept (filled) / Maybe / Decline. A promise shows a spinner, a rejection shows an error, and success shows a confirmation message with "Change". The footer has rsvpNote plus "+ Add to calendar", a data:text/calendar .ics link with DTSTART/DTEND/SUMMARY/LOCATION.
+
+3D: perspective wrapper, preserve-3d flipper rotating Y 180° over 900ms, faces with backface-visibility hidden. A mouse-only tilt sets CSS variables from the pointer position. The hidden face is inert + aria-hidden, and focus moves to the visible face after a flip.
+
+Typography: three font roles read from CSS variables with fallbacks: --inv-font-script (Pinyon Script, for the monogram, names and heading), --inv-font-serif (Cormorant Garamond, for body and italics) and --inv-font-caps (Cinzel, for spaced labels). The app loads them with next/font (preload: false). Themes are CSS variables (paper, ink, muted, line, foil A/B, button). Self-contained keyframes via React 19 <style href precedence>, and reduced-motion disables the flip transition and sheen. No dependencies.`,
+  },
 ];
 
 export function getComponent(slug: string) {
