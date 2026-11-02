@@ -30,7 +30,25 @@ Typography: three font roles read from CSS variables with fallbacks: --inv-font-
 
 ## Post 2 — Component
 
-(Second Week 05 component still to build.)
+```
+Week: 05
+Type: section
+Component: Day / Night World Map
+Live: antu-lofistack-gallery.vercel.app/components/day-night-map
+Repo: github.com/antudas01-stack/lofistack-gallery/blob/main/src/components/gallery/day-night-map.tsx
+Prompt:
+Build a reusable React 19 + TypeScript + Tailwind v4 landing-page section called DayNightMap: a dotted world map showing where it's day or night, from the real position of the sun.
+
+Data: a land/water bitmask for an equirectangular grid (1.5° cells, lat 84° to −58°), generated once offline from Natural Earth 110m land polygons and embedded as base64. No runtime map libraries.
+
+Sun math: compute the subsolar point from the timestamp with the NOAA low-precision formulas (mean anomaly, ecliptic longitude, obliquity → declination; right ascension → equation of time → subsolar longitude). Sun altitude anywhere: sin(alt) = sinφ·sinδ + cosφ·cosδ·cos(λ − λsun). Phase: day if alt > −0.833°, twilight down to −6°, otherwise night.
+
+Rendering: a dark section (#060a16) with an indigo glow. A <canvas> (DPR-aware, width from a ResizeObserver, aspect 360:142) draws every land cell as a dot whose colour and opacity blend smoothly from nightColor to dayColor through twilight, plus a radial "sun bloom" around the subsolar point (wrapped across the date line). A glowing sun marker sits on top. Location pins are absolutely positioned buttons using percentage coordinates. At night they glow in lightColor with a pulsing ring like city lights; in daylight they're small white dots.
+
+Interaction: hovering, focusing or selecting a pin shows a detail card (name, country, big local time via Intl with the location's timeZone, weekday, ☀/◐/☾ phase, sun angle up or below, optional note), flipped below the pin near the top edge. Controls: a play/pause button that sweeps a 24h time-lapse, a range slider (−12h to +24h, 15-minute steps) with "+3h 15m" labels, and a Now button. Header shows the UTC clock, a Day/Night legend and an "N/M asleep" count. The location list under the map is synced with hover and selection.
+
+Time comes from a shared 15-second clock via useSyncExternalStore with a null server snapshot (SSR shows "--:--"). Accessibility: labelled pins with aria-pressed, a role=status card, aria-valuetext on the slider, icons + words for phase, and reduced-motion support.
+```
 
 ---
 

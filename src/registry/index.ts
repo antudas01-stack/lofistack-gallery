@@ -561,6 +561,59 @@ Back: "The Details" heading with a flip-back button. A definition list for When 
 
 Typography: three font roles read from CSS variables with fallbacks: --inv-font-script (Pinyon Script, for the monogram, names and heading), --inv-font-serif (Cormorant Garamond, for body and italics) and --inv-font-caps (Cinzel, for spaced labels). The app loads them with next/font (preload: false). Themes are CSS variables (paper, ink, muted, line, foil A/B, button). Self-contained keyframes via React 19 <style href precedence>, and reduced-motion disables the flip transition and sheen. No dependencies.`,
   },
+  {
+    slug: "day-night-map",
+    name: "Day / Night World Map",
+    type: "section",
+    week: 5,
+    addedOn: "2026-11-03",
+    summary: "A dotted world map with a live day/night line worked out from the real position of the sun, plus city lights and a 24-hour time-lapse.",
+    description:
+      "A landing-page section that shows where in the world it's day or night right now. Continents are drawn from thousands of dots that glow warm in daylight and fade to cool blue at night, with a soft sun bloom over the sunlit side. The terminator is calculated from the sun's real position, so it shifts with the seasons too. Your locations glow like city lights after dark. Hover or tap one for its local time and the sun's angle, scrub the timeline, or press play to watch a whole day sweep across the planet.",
+    sourcePath: "src/components/gallery/day-night-map.tsx",
+    usage: `import { DayNightMap } from "@/components/gallery/day-night-map";
+
+<DayNightMap
+  title="Around the world, right now"
+  defaultSelectedId="dhaka"
+  locations={[
+    { id: "dhaka", name: "Dhaka", country: "Bangladesh", lat: 23.81, lng: 90.41, timeZone: "Asia/Dhaka", note: "HQ · 42 people" },
+    { id: "london", name: "London", country: "UK", lat: 51.51, lng: -0.13, timeZone: "Europe/London" },
+    { id: "nyc", name: "New York", country: "USA", lat: 40.71, lng: -74.01, timeZone: "America/New_York" },
+  ]}
+  onSelect={(loc) => console.log(loc.name)}
+/>`,
+    props: [
+      { name: "locations", type: "{ id; name; lat; lng; timeZone; country?; note? }[]", required: true, description: "Places to pin. timeZone is IANA, e.g. Asia/Dhaka, and drives the local clock." },
+      { name: "title / description", type: "string", description: "Section heading and intro copy." },
+      { name: "showControls", type: "boolean", default: "true", description: "Time-lapse play button, time scrubber (−12h to +24h) and Now button." },
+      { name: "showList", type: "boolean", default: "true", description: "Location list under the map, synced with hover and selection." },
+      { name: "defaultSelectedId", type: "string", description: "Location whose detail card shows first." },
+      { name: "onSelect", type: "(location) => void", description: "Called when a pin or list item is clicked." },
+      { name: "dayColor / nightColor / lightColor", type: "string (hex)", default: `"#fcd34d" / "#6d7bd8" / "#fde68a"`, description: "Daylit land, land at night, and the city-light glow." },
+      { name: "className", type: "string", description: "Extra classes for the section." },
+    ],
+    states: ["Live (updates every 15s)", "Day / twilight / night pins", "Hover or focus detail card", "Selected location", "Scrubbing the timeline", "Playing the 24h time-lapse", "Map only (no controls or list)", "Server render (times appear after hydration)"],
+    accessibility: [
+      "A <section> labelled by its heading. The dotted canvas is decorative (aria-hidden).",
+      "Every pin is a real button with a full label, e.g. “Dhaka, Bangladesh: 2:12 PM, daytime”, and aria-pressed for the selected one.",
+      "The detail card uses role=\"status\", so the local time and day/night state are announced.",
+      "The time slider has a readable aria-valuetext (“+3h 15m”), and Play/Pause has a clear label.",
+      "Day/night is shown with icons and words (☀ Daytime, ☾ Night), never by color alone.",
+      "Pin pulses are disabled under prefers-reduced-motion.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 landing-page section called DayNightMap: a dotted world map showing where it's day or night, from the real position of the sun.
+
+Data: a land/water bitmask for an equirectangular grid (1.5° cells, lat 84° to −58°), generated once offline from Natural Earth 110m land polygons and embedded as base64. No runtime map libraries.
+
+Sun math: compute the subsolar point from the timestamp with the NOAA low-precision formulas (mean anomaly, ecliptic longitude, obliquity → declination; right ascension → equation of time → subsolar longitude). Sun altitude anywhere: sin(alt) = sinφ·sinδ + cosφ·cosδ·cos(λ − λsun). Phase: day if alt > −0.833°, twilight down to −6°, otherwise night.
+
+Rendering: a dark section (#060a16) with an indigo glow. A <canvas> (DPR-aware, width from a ResizeObserver, aspect 360:142) draws every land cell as a dot whose colour and opacity blend smoothly from nightColor to dayColor through twilight, plus a radial "sun bloom" around the subsolar point (wrapped across the date line). A glowing sun marker sits on top. Location pins are absolutely positioned buttons using percentage coordinates. At night they glow in lightColor with a pulsing ring like city lights; in daylight they're small white dots.
+
+Interaction: hovering, focusing or selecting a pin shows a detail card (name, country, big local time via Intl with the location's timeZone, weekday, ☀/◐/☾ phase, sun angle up or below, optional note), flipped below the pin near the top edge. Controls: a play/pause button that sweeps a 24h time-lapse, a range slider (−12h to +24h, 15-minute steps) with "+3h 15m" labels, and a Now button. Header shows the UTC clock, a Day/Night legend and an "N/M asleep" count. The location list under the map is synced with hover and selection.
+
+Time comes from a shared 15-second clock via useSyncExternalStore with a null server snapshot (SSR shows "--:--"). Accessibility: labelled pins with aria-pressed, a role=status card, aria-valuetext on the slider, icons + words for phase, and reduced-motion support.`,
+  },
 ];
 
 export function getComponent(slug: string) {

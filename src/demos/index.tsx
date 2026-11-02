@@ -15,6 +15,7 @@ import {
 } from "./conversational-form-demo";
 import { DynamicIslandNavCard, DynamicIslandNavPlayground, DynamicIslandNavStates } from "./dynamic-island-nav-demo";
 import { FlipInvitationCard, FlipInvitationPlayground, FlipInvitationStates } from "./flip-invitation-demo";
+import { DayNightMapCard, DayNightMapPlayground, DayNightMapStates } from "./day-night-map-demo";
 import { CommandPaletteCard, CommandPalettePlayground, CommandPaletteStates } from "./command-palette-demo";
 import { ReceiptCardCard, ReceiptCardPlayground, ReceiptCardStates } from "./receipt-card-demo";
 import {
@@ -51,6 +52,7 @@ const DEMOS: Record<string, Record<DemoView, ComponentType>> = {
     card: ConversationalFormCard,
   },
   "flip-invitation": { playground: FlipInvitationPlayground, states: FlipInvitationStates, card: FlipInvitationCard },
+  "day-night-map": { playground: DayNightMapPlayground, states: DayNightMapStates, card: DayNightMapCard },
 };
 
 /** Client-side lookup so server pages can render a demo by slug. */

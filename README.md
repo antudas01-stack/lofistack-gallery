@@ -26,6 +26,7 @@ Every component gets its own page at `/components/<slug>` with:
 | 04 | navbar | Dynamic Island Nav | [/components/dynamic-island-nav](https://antu-lofistack-gallery.vercel.app/components/dynamic-island-nav) |
 | 04 | form | Conversational Form | [/components/conversational-form](https://antu-lofistack-gallery.vercel.app/components/conversational-form) |
 | 05 | card | Flip Invitation | [/components/flip-invitation](https://antu-lofistack-gallery.vercel.app/components/flip-invitation) |
+| 05 | section | Day / Night World Map | [/components/day-night-map](https://antu-lofistack-gallery.vercel.app/components/day-night-map) |
 
 ## Run locally
 
