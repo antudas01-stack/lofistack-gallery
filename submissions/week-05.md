@@ -36,4 +36,15 @@ Typography: three font roles read from CSS variables with fallbacks: --inv-font-
 
 ## Post 3 — Agent log
 
-(Week 05 agent log: use a new kind of task, e.g. writing/docs, data cleanup, or summarising a call.)
+```
+Week: 05
+Task: Diagnose and fix typography that wasn't rendering on the Flip Invitation component
+Agent: Claude Code (Claude Opus 5.5)
+Prompt or workflow:
+"So can you make the font more aesthetic?"
+1. Diagnosis: The agent checked the computed styles in the browser and found the card was asking for "Cormorant Garamond", but the font was never loaded, so visitors saw plain Georgia.
+2. Font design: It defined three typography roles: Pinyon Script (calligraphy for the monogram, names and headings), Cormorant Garamond (body and italics) and Cinzel (engraved capitals for labels). Each is exposed as a CSS variable with fallbacks, so the component stays portable.
+3. Troubleshooting: The first approach (loading fonts with next/font inside a client component) crashed the dev server under Turbopack. The agent moved the fonts into the root layout with preloading disabled. A second error was isolated to Cinzel alone and resolved by loading it as a variable font without a weight list.
+4. Verification: Using the browser's font API, it confirmed all three fonts loaded and applied. It measured both card faces for overflow, fixed a 29px overflow on phones, and confirmed the fonts were served on the live site after deployment.
+Result: The invitation now renders with the intended premium typography for every visitor instead of a system fallback. Two framework-level build errors were found and resolved, and fonts download only on pages that use the component, so the rest of the site stays fast.
+```
