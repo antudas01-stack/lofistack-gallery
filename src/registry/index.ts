@@ -667,6 +667,77 @@ Ghost Race: record every run compactly (initial body, the head cell after each t
 
 Input: focusable screen (role="application") with arrows / WASD / 2-4-6-8, Space / Enter / 5. Swipe gestures on touch (tap = start or pause). Keypad buttons respond on pointerdown, plus click for keyboard activation. Optional Web Audio square-wave beeps and navigator.vibrate on crash. A polite live region for status. onGameOver({ score, best, newRecord, ticks }). No dependencies.`,
   },
+  {
+    slug: "emi-calculator",
+    name: "EMI Calculator",
+    type: "form",
+    week: 6,
+    addedOn: "2026-11-11",
+    summary: "A buy-now-pay-monthly calculator: price, down payment, interest and any period in, monthly EMI, total cost and a full schedule out.",
+    description:
+      "A calculator a shop can put next to any product. The customer sets the price, an optional down payment and the yearly interest rate, then picks a plan (3, 6, 12, 18, 24 or 36 months) or types any custom number of months. It instantly shows the monthly EMI, the total interest, and everything they will pay in total, with a donut that splits principal from interest. A compare table shows every plan side by side, a month-by-month schedule shows where each payment goes, and a toggle switches between `reducing` balance (bank-style) and `flat` rate interest. The math is also exported as a plain `calculateEmi()` function.",
+    sourcePath: "src/components/gallery/emi-calculator.tsx",
+    usage: `import { EmiCalculator, calculateEmi } from "@/components/gallery/emi-calculator";
+
+<EmiCalculator
+  title="Buy now, pay monthly"
+  currency="BDT"
+  defaultPrice={85000}
+  minPrice={5000}
+  maxPrice={500000}
+  priceStep={1000}
+  defaultDownPayment={10000}
+  defaultRate={12}
+  tenures={[3, 6, 12, 18, 24, 36]}
+  defaultTenure={12}
+  onChange={(result) => console.log(result.emi, result.totalPayable)}
+/>
+
+// Just the math, no UI
+const { emi, totalInterest } = calculateEmi({ principal: 75000, annualRate: 12, months: 12 });`,
+    props: [
+      { name: "title", type: "string", default: `"EMI calculator"`, description: "Heading and accessible name of the section." },
+      { name: "currency / locale", type: "string", default: `"USD" / "en-US"`, description: "ISO currency code and locale used to format every amount." },
+      { name: "defaultPrice / minPrice / maxPrice / priceStep", type: "number", default: "1200 / 100 / 10000 / 50", description: "Starting product price and the limits of its field and slider." },
+      { name: "defaultDownPayment", type: "number", default: "0", description: "Amount paid upfront. The rest is financed." },
+      { name: "defaultRate / maxRate", type: "number", default: "12 / 36", description: "Yearly interest rate in percent, and the slider limit. 0 gives a 0% plan." },
+      { name: "tenures", type: "number[]", default: "[3, 6, 12, 18, 24, 36]", description: "Preset plans in months. A Custom chip is always added." },
+      { name: "defaultTenure / maxTenure", type: "number", default: "12 / 120", description: "Starting period, and the longest custom period, in months." },
+      { name: "defaultMethod", type: `"reducing" | "flat"`, default: `"reducing"`, description: "Reducing: interest on the remaining balance. Flat: interest on the full amount for the whole period." },
+      { name: "showCompare / showSchedule", type: "boolean", default: "true", description: "Show the compare-plans table and the month-by-month schedule." },
+      { name: "onChange", type: "(result: EmiResult) => void", description: "Called on every change with price, principal, emi, totalInterest, totalPayable and the schedule." },
+      { name: "className", type: "string", description: "Extra classes for the section." },
+    ],
+    states: ["Default", "Typing vs slider (kept in sync)", "Preset plan selected", "Custom period", "0% interest plan", "Reducing vs flat rate", "With down payment", "Nothing to finance", "Schedule open", "Copied summary"],
+    accessibility: [
+      "Every field has a real <label>, and each slider has its own aria-label.",
+      "Plans and the interest method are radiogroups with aria-checked.",
+      "A status region announces the new EMI, total interest and total cost after each change.",
+      "The compare table and the schedule are real tables with column and row headers.",
+      "The donut has a text label, and principal and interest are also listed as numbers, not only as colours.",
+      "Arrow Up / Down in a field steps the value, and values are clamped to their limits when you leave the field.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 component called EmiCalculator: a "buy now, pay monthly" installment calculator for product pages.
+
+Inputs (each a labelled text field with a synced range slider; typing is free-form and clamps on blur, Arrow Up/Down steps):
+- Product price (min / max / step props, currency symbol prefix)
+- Down payment (0 to price, shows "% of price")
+- Interest rate per year (0 to maxRate, 0.25 steps, "%" suffix)
+- Period: radio chips for preset tenures (default 3, 6, 12, 18, 24, 36 months) plus a Custom chip that reveals a months field (1 to maxTenure) with a "2 years 6 mo" hint
+- Interest method toggle: reducing | flat
+
+Math (export it as a pure calculateEmi({ principal, annualRate, months, method })): principal = price − down payment, r = annualRate / 12 / 100.
+- Reducing balance: EMI = P·r·(1+r)^n / ((1+r)^n − 1)
+- Flat: EMI = (P + P·r·n) / n
+- 0% interest: EMI = P / n
+Build the full schedule (month, payment, principal, interest, balance); the last payment clears the remaining balance so rounding never leaves a remainder. Return emi, totalInterest, totalPayable and schedule.
+
+Results panel (dark gradient card): big Monthly EMI, "every month for N", an SVG donut splitting principal and interest with animated stroke-dasharray, and a definition list with amount financed, total interest (+% extra), paid upfront and total you pay. A "Copy summary" button copies a plain-text summary. If the down payment covers the price, show a "Nothing to finance" state.
+
+Below: a Compare plans table (every preset plus the current custom period: EMI, total interest, total payable; clicking a plan selects it) and a collapsible Payment schedule table with a sticky header and scroll.
+
+Other requirements: format money with Intl.NumberFormat (currency + locale props, narrow symbol, whole amounts without decimals, otherwise 2 decimals). Layout uses a container query so it goes two-column based on its own width, not the viewport. onChange(result) fires on every change. Accessibility: labels, radiogroups, a role=status summary, real tables with scope, and a labelled donut. Light and dark mode. No dependencies.`,
+  },
 ];
 
 export function getComponent(slug: string) {

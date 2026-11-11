@@ -28,6 +28,7 @@ Every component gets its own page at `/components/<slug>` with:
 | 05 | card | Flip Invitation | [/components/flip-invitation](https://antu-lofistack-gallery.vercel.app/components/flip-invitation) |
 | 05 | section | Day / Night World Map | [/components/day-night-map](https://antu-lofistack-gallery.vercel.app/components/day-night-map) |
 | 06 | section | Ghost Snake | [/components/ghost-snake](https://antu-lofistack-gallery.vercel.app/components/ghost-snake) |
+| 06 | form | EMI Calculator | [/components/emi-calculator](https://antu-lofistack-gallery.vercel.app/components/emi-calculator) |
 
 ## Run locally
 

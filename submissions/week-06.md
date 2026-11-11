@@ -28,7 +28,34 @@ Input: focusable screen (role="application") with arrows / WASD / 2-4-6-8, Space
 
 ## Post 2 — Component
 
-(Second Week 06 component still to build. Only `table` is unused so far.)
+```
+Week: 06
+Type: form
+Component: EMI Calculator
+Live: antu-lofistack-gallery.vercel.app/components/emi-calculator
+Repo: github.com/antudas01-stack/lofistack-gallery/blob/main/src/components/gallery/emi-calculator.tsx
+Prompt:
+Build a reusable React 19 + TypeScript + Tailwind v4 component called EmiCalculator: a "buy now, pay monthly" installment calculator for product pages.
+
+Inputs (each a labelled text field with a synced range slider; typing is free-form and clamps on blur, Arrow Up/Down steps):
+- Product price (min / max / step props, currency symbol prefix)
+- Down payment (0 to price, shows "% of price")
+- Interest rate per year (0 to maxRate, 0.25 steps, "%" suffix)
+- Period: radio chips for preset tenures (default 3, 6, 12, 18, 24, 36 months) plus a Custom chip that reveals a months field (1 to maxTenure) with a "2 years 6 mo" hint
+- Interest method toggle: reducing | flat
+
+Math (export it as a pure calculateEmi({ principal, annualRate, months, method })): principal = price − down payment, r = annualRate / 12 / 100.
+- Reducing balance: EMI = P·r·(1+r)^n / ((1+r)^n − 1)
+- Flat: EMI = (P + P·r·n) / n
+- 0% interest: EMI = P / n
+Build the full schedule (month, payment, principal, interest, balance); the last payment clears the remaining balance so rounding never leaves a remainder. Return emi, totalInterest, totalPayable and schedule.
+
+Results panel (dark gradient card): big Monthly EMI, "every month for N", an SVG donut splitting principal and interest with animated stroke-dasharray, and a definition list with amount financed, total interest (+% extra), paid upfront and total you pay. A "Copy summary" button copies a plain-text summary. If the down payment covers the price, show a "Nothing to finance" state.
+
+Below: a Compare plans table (every preset plus the current custom period: EMI, total interest, total payable; clicking a plan selects it) and a collapsible Payment schedule table with a sticky header and scroll.
+
+Other requirements: format money with Intl.NumberFormat (currency + locale props, narrow symbol, whole amounts without decimals, otherwise 2 decimals). Layout uses a container query so it goes two-column based on its own width, not the viewport. onChange(result) fires on every change. Accessibility: labels, radiogroups, a role=status summary, real tables with scope, and a labelled donut. Light and dark mode. No dependencies.
+```
 
 ---
 
