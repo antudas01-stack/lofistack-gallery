@@ -614,6 +614,59 @@ Interaction: hovering, focusing or selecting a pin shows a detail card (name, co
 
 Time comes from a shared 15-second clock via useSyncExternalStore with a null server snapshot (SSR shows "--:--"). Accessibility: labelled pins with aria-pressed, a role=status card, aria-valuetext on the slider, icons + words for phase, and reduced-motion support.`,
   },
+  {
+    slug: "ghost-snake",
+    name: "Ghost Snake",
+    type: "section",
+    week: 6,
+    addedOn: "2026-11-11",
+    summary: "The classic Nokia Snake in a retro phone, with a twist: race a ghost replay of your own best run.",
+    description:
+      "A playable remake of the Snake game from the Nokia 3310, drawn on a pixel LCD inside a phone shell with a working keypad. The twist is Ghost Race. Every run is recorded, and once you set a record your best run replays as a see-through ghost snake beside you, with a 👻 +/− badge showing whether you're ahead of or behind your past self. Beat it and the ghost updates. It plays with arrow keys, WASD, the keypad, or swipes on a phone, and has 9 speed levels, walls or wrap-around, three LCD colours and optional retro beeps.",
+    sourcePath: "src/components/gallery/ghost-snake.tsx",
+    usage: `import { GhostSnake, clearGhostRecord } from "@/components/gallery/ghost-snake";
+
+<GhostSnake
+  theme="nokia"          // nokia | amber | ice
+  startLevel={5}         // 1–9, also points per apple
+  walls                  // false = wrap around the edges
+  ghost                  // race a replay of your best run
+  sound={false}
+  onGameOver={({ score, best, newRecord }) => saveScore(score)}
+/>
+
+// Wipe the saved record + ghost
+clearGhostRecord("ls-ghost-snake");`,
+    props: [
+      { name: "cols / rows", type: "number", default: "20 / 12", description: "Board size in cells." },
+      { name: "startLevel", type: "number (1–9)", default: "5", description: "Game speed. Each apple is worth this many points." },
+      { name: "walls", type: "boolean", default: "true", description: "true: hitting an edge ends the run. false: wrap around to the other side." },
+      { name: "ghost", type: "boolean", default: "true", description: "Replay your best run as a translucent ghost and show the +/− race badge." },
+      { name: "sound", type: "boolean", default: "false", description: "Square-wave beeps on eating and crashing (Web Audio)." },
+      { name: "theme", type: `"nokia" | "amber" | "ice"`, default: `"nokia"`, description: "LCD and phone-shell colours." },
+      { name: "storageKey", type: "string", default: `"ls-ghost-snake"`, description: "localStorage key for the best score + ghost recording." },
+      { name: "onGameOver", type: "(result) => void", description: "Called with { score, best, newRecord, ticks } when a run ends." },
+      { name: "className", type: "string", description: "Extra classes for the phone shell." },
+    ],
+    states: ["Title screen", "Playing", "Racing the ghost (👻 +/−)", "Paused", "Game over", "New record (ghost updated)", "Wrap-around mode", "3 LCD themes"],
+    accessibility: [
+      "The screen is a focusable role=\"application\" with instructions in its label, so arrow keys work without scrolling the page.",
+      "Keys: arrows / WASD / 2-4-6-8 to steer, Space / Enter / 5 to start or pause.",
+      "Keypad direction and start buttons are real buttons with labels (“Turn up”, “Start or pause”).",
+      "Score changes, pauses and game over are announced through a polite live region.",
+      "The ghost race lead is shown as a number (+3 / −2), not by colour alone.",
+      "It stores only a local best score. Nothing is sent anywhere.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 game component called GhostSnake: the classic Nokia 3310 Snake, with a unique "Ghost Race" feature.
+
+Look: a rounded phone shell (gradient body, "NOKIA" wordmark), an LCD screen with a top HUD (4-digit score, best score, ghost badge) and a <canvas> board (cols × rows cells at 10px, scaled with image-rendering: pixelated). Every cell draws as an unlit LCD pixel, the snake as dark pixels with an eye on the head, and food as a small pixel diamond. Under the screen are a Play/Pause navi key and a 3×3 keypad where 2/4/6/8 steer and 5 starts or pauses (other keys are decorative). There are three LCD palettes (nokia, amber, ice).
+
+Game: a setInterval loop whose speed depends on level (1–9). Input is buffered (max 2 queued turns, no 180° reversals). Walls end the run, or wrap around when walls={false}. Self-collision ignores the tail when not growing. Each apple adds level points. Food is placed on a random free cell. Overlays show the title, paused and game over / new record states.
+
+Ghost Race: record every run compactly (initial body, the head cell after each tick, and [tick, length, score] events when eating). When a run beats the best score, save the recording to localStorage (read back through useSyncExternalStore so SSR is stable, with an in-memory fallback if storage fails). On the next run, rebuild the ghost's body at the current tick from the recording and draw it as a dithered, see-through snake. The HUD shows 👻 +N / −N (your score minus the ghost's score at the same tick). Export clearGhostRecord(storageKey).
+
+Input: focusable screen (role="application") with arrows / WASD / 2-4-6-8, Space / Enter / 5. Swipe gestures on touch (tap = start or pause). Keypad buttons respond on pointerdown, plus click for keyboard activation. Optional Web Audio square-wave beeps and navigator.vibrate on crash. A polite live region for status. onGameOver({ score, best, newRecord, ticks }). No dependencies.`,
+  },
 ];
 
 export function getComponent(slug: string) {
