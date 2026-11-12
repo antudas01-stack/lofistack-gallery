@@ -26,6 +26,26 @@ export interface EmiResult {
   /** Everything paid in installments (principal + interest). */
   totalPayable: number;
   schedule: EmiScheduleRow[];
+  /** Monthly income, when the customer entered one. */
+  income?: number;
+  /** EMI as a share of income (0.15 = 15%). */
+  incomeShare?: number;
+  /** Plan suggested for that income, in months. null when no plan fits. */
+  recommendedMonths?: number | null;
+}
+
+export type Affordability = "comfortable" | "tight" | "over";
+
+export interface PlanAdvice {
+  /** Suggested period in months, or null when even the longest plan is over the limit. */
+  months: number | null;
+  /** EMI of the suggested plan (or of the longest plan when nothing fits). */
+  emi: number;
+  /** That EMI as a share of income. */
+  share: number;
+  level: Affordability;
+  /** Extra down payment that would make the longest plan comfortable. null when not needed. */
+  extraDownPayment: number | null;
 }
 
 export interface EmiCalculatorProps {
@@ -52,6 +72,14 @@ export interface EmiCalculatorProps {
   showCompare?: boolean;
   /** Month-by-month payment schedule. */
   showSchedule?: boolean;
+  /** "Find my best plan": suggests a plan from the customer's monthly income. */
+  showAffordability?: boolean;
+  defaultIncome?: number;
+  maxIncome?: number;
+  /** An EMI up to this share of income counts as comfortable (0.15 = 15%). */
+  comfortShare?: number;
+  /** An EMI above this share of income counts as too high (0.3 = 30%). */
+  maxShare?: number;
   /** Called with the full result whenever any input changes. */
   onChange?: (result: EmiResult) => void;
   className?: string;
@@ -99,6 +127,63 @@ export function calculateEmi(input: {
   const totalPayable = schedule.reduce((sum, row) => sum + row.payment, 0);
   return { emi, totalInterest: Math.max(0, totalPayable - P), totalPayable, schedule };
 }
+
+const levelFor = (share: number, comfortShare: number, maxShare: number): Affordability =>
+  share <= comfortShare + 1e-9 ? "comfortable" : share <= maxShare + 1e-9 ? "tight" : "over";
+
+/**
+ * Picks a plan from monthly income. Rule: the shortest plan whose EMI stays within the
+ * comfortable share (least interest while comfortable). If none is comfortable, the plan
+ * with the lowest EMI, as long as it is within the limit. Otherwise no plan.
+ */
+export function advisePlan(input: {
+  income: number;
+  principal: number;
+  annualRate: number;
+  tenures: number[];
+  method?: EmiMethod;
+  comfortShare?: number;
+  maxShare?: number;
+}): PlanAdvice | null {
+  const { income, principal, annualRate, method = "reducing", comfortShare = 0.15, maxShare = 0.3 } = input;
+  if (income <= 0 || principal <= 0 || input.tenures.length === 0) return null;
+  const options = [...new Set(input.tenures)]
+    .sort((a, b) => a - b)
+    .map((months) => ({ months, emi: calculateEmi({ principal, annualRate, months, method }).emi }));
+  const comfortable = options.find((o) => o.emi <= income * comfortShare + 1e-9);
+  const lowest = options[options.length - 1];
+  const pick = comfortable ?? (lowest.emi <= income * maxShare + 1e-9 ? lowest : null);
+  const shown = pick ?? lowest;
+  // EMI scales linearly with the amount financed, so the comfortable amount is a simple ratio.
+  const comfortablePrincipal = (income * comfortShare) / (lowest.emi / principal);
+  return {
+    months: pick ? pick.months : null,
+    emi: shown.emi,
+    share: shown.emi / income,
+    level: levelFor(shown.emi / income, comfortShare, maxShare),
+    extraDownPayment: comfortable ? null : Math.max(0, principal - comfortablePrincipal),
+  };
+}
+
+const LEVELS: Record<Affordability, { label: string; pill: string; card: string }> = {
+  comfortable: {
+    label: "Comfortable",
+    pill: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300",
+    card: "border-emerald-500/40 bg-emerald-500/10",
+  },
+  tight: {
+    label: "Tight",
+    pill: "bg-amber-500/20 text-amber-800 dark:text-amber-300",
+    card: "border-amber-500/50 bg-amber-500/10",
+  },
+  over: {
+    label: "Too high",
+    pill: "bg-rose-500/15 text-rose-800 dark:text-rose-300",
+    card: "border-rose-500/40 bg-rose-500/10",
+  },
+};
+
+const percent = (share: number) => `${share >= 0.995 ? Math.round(share * 100) : +(share * 100).toFixed(1)}%`;
 
 function tenureLabel(months: number) {
   const years = Math.floor(months / 12);
@@ -215,6 +300,11 @@ export function EmiCalculator({
   defaultMethod = "reducing",
   showCompare = true,
   showSchedule = true,
+  showAffordability = true,
+  defaultIncome = 0,
+  maxIncome,
+  comfortShare = 0.15,
+  maxShare = 0.3,
   onChange,
   className,
 }: EmiCalculatorProps) {
@@ -225,6 +315,7 @@ export function EmiCalculator({
   const [months, setMonths] = useState(defaultTenure);
   const [custom, setCustom] = useState(!tenures.includes(defaultTenure));
   const [method, setMethod] = useState<EmiMethod>(defaultMethod);
+  const [income, setIncome] = useState(defaultIncome);
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -252,18 +343,29 @@ export function EmiCalculator({
   const downPayment = Math.min(down, price);
   const principal = price - downPayment;
 
-  const result = useMemo<EmiResult>(
-    () => ({
+  const advice = useMemo(
+    () =>
+      showAffordability
+        ? advisePlan({ income, principal, annualRate: rate, tenures, method, comfortShare, maxShare })
+        : null,
+    [showAffordability, income, principal, rate, tenures, method, comfortShare, maxShare],
+  );
+
+  const result = useMemo<EmiResult>(() => {
+    const base = calculateEmi({ principal, annualRate: rate, months, method });
+    return {
       price,
       downPayment,
       principal,
       annualRate: rate,
       months,
       method,
-      ...calculateEmi({ principal, annualRate: rate, months, method }),
-    }),
-    [price, downPayment, principal, rate, months, method],
-  );
+      ...base,
+      ...(showAffordability && income > 0
+        ? { income, incomeShare: base.emi / income, recommendedMonths: advice ? advice.months : null }
+        : {}),
+    };
+  }, [price, downPayment, principal, rate, months, method, showAffordability, income, advice]);
 
   const plans = useMemo(() => {
     const list = [...new Set([...tenures, months])].sort((a, b) => a - b);
@@ -290,6 +392,20 @@ export function EmiCalculator({
   const totalCost = downPayment + result.totalPayable;
   const CIRC = 2 * Math.PI * 42;
 
+  // Affordability, relative to the income the customer entered.
+  const hasIncome = showAffordability && income > 0;
+  const selectedShare = hasIncome ? result.emi / income : 0;
+  const selectedLevel = levelFor(selectedShare, comfortShare, maxShare);
+  const scaleMax = maxShare * 1.5;
+  const recommended =
+    advice && advice.months !== null ? plans.find((plan) => plan.months === advice.months) : undefined;
+  const longestTenure = Math.max(...tenures);
+  const extraDown =
+    advice && advice.extraDownPayment !== null && advice.extraDownPayment > 0
+      ? Math.ceil(advice.extraDownPayment / priceStep) * priceStep
+      : 0;
+  const canAddDown = extraDown > 0 && downPayment + extraDown < price;
+
   const summary = [
     `${title}`,
     `Price: ${money.format(price)}`,
@@ -298,6 +414,9 @@ export function EmiCalculator({
     `Monthly EMI: ${money.format(result.emi)}`,
     `Total interest: ${money.format(result.totalInterest)}`,
     `Total payable: ${money.format(totalCost)}`,
+    hasIncome && !nothingToFinance
+      ? `EMI is ${percent(selectedShare)} of monthly income (${LEVELS[selectedLevel].label.toLowerCase()})`
+      : null,
   ]
     .filter(Boolean)
     .join("\n");
@@ -542,13 +661,160 @@ export function EmiCalculator({
       <p className="sr-only" role="status">
         Monthly EMI {money.format(result.emi)} for {months} months. Total interest {money.format(result.totalInterest)}.
         Total you pay {money.format(totalCost)}.
+        {hasIncome &&
+          !nothingToFinance &&
+          ` That is ${percent(selectedShare)} of your income: ${LEVELS[selectedLevel].label.toLowerCase()}.`}
+        {advice &&
+          (advice.months !== null
+            ? ` Best plan for your income: ${advice.months} months.`
+            : " No plan fits your income yet.")}
       </p>
+
+      {showAffordability && (
+        <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="grid grid-cols-1 gap-5 @2xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)]">
+            <div>
+              <h3 className="text-sm font-semibold">Find my best plan</h3>
+              <p className="mt-1 mb-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                Enter your monthly income and we&apos;ll suggest the plan that fits your budget.
+              </p>
+              <NumberField
+                label="Monthly income"
+                value={income}
+                onChange={setIncome}
+                min={0}
+                max={maxIncome ?? maxPrice}
+                step={priceStep}
+                prefix={money.symbol}
+                hint="Optional"
+                locale={locale}
+              />
+              <p className="mt-3 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                Guide used: an EMI up to {percent(comfortShare)} of income is comfortable, and above {percent(maxShare)}{" "}
+                is too high. This is a budgeting guide, not financial advice.
+              </p>
+            </div>
+
+            <div className="min-w-0">
+              {!hasIncome ? (
+                <p className="grid h-full min-h-24 place-items-center rounded-xl border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                  Your suggested plan will appear here.
+                </p>
+              ) : nothingToFinance || !advice ? (
+                <p className="grid h-full min-h-24 place-items-center rounded-xl border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                  No EMI needed: your down payment covers the full price.
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span>
+                      Your selected plan uses{" "}
+                      <span className="font-semibold tabular-nums">{percent(selectedShare)}</span> of your income
+                    </span>
+                    <span
+                      className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", LEVELS[selectedLevel].pill)}
+                    >
+                      {LEVELS[selectedLevel].label}
+                    </span>
+                  </div>
+                  <div
+                    role="meter"
+                    aria-label="EMI as a share of monthly income"
+                    aria-valuemin={0}
+                    aria-valuemax={Math.round(scaleMax * 100)}
+                    aria-valuenow={Math.min(Math.round(scaleMax * 100), Math.round(selectedShare * 100))}
+                    aria-valuetext={`${percent(selectedShare)} of income, ${LEVELS[selectedLevel].label.toLowerCase()}`}
+                    className="relative mt-3"
+                  >
+                    <div className="flex h-2.5 overflow-hidden rounded-full">
+                      <span className="bg-emerald-500" style={{ width: `${(comfortShare / scaleMax) * 100}%` }} />
+                      <span
+                        className="bg-amber-400"
+                        style={{ width: `${((maxShare - comfortShare) / scaleMax) * 100}%` }}
+                      />
+                      <span className="flex-1 bg-rose-500" />
+                    </div>
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-1 h-4.5 w-1.5 -translate-x-1/2 rounded-full bg-zinc-900 ring-2 ring-white transition-[left] duration-500 motion-reduce:transition-none dark:bg-white dark:ring-zinc-900"
+                      style={{ left: `${Math.min(1, selectedShare / scaleMax) * 100}%` }}
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="relative mt-1.5 h-4 text-[10px] text-zinc-500 tabular-nums dark:text-zinc-400"
+                    >
+                      <span className="absolute left-0">0%</span>
+                      <span
+                        className="absolute -translate-x-1/2"
+                        style={{ left: `${(comfortShare / scaleMax) * 100}%` }}
+                      >
+                        {percent(comfortShare)}
+                      </span>
+                      <span className="absolute -translate-x-1/2" style={{ left: `${(maxShare / scaleMax) * 100}%` }}>
+                        {percent(maxShare)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={cn("mt-3 rounded-xl border p-3.5", LEVELS[advice.level].card)}>
+                    <p className="text-[11px] font-semibold tracking-wider uppercase">
+                      {advice.months === null ? "No plan fits yet" : "Best for you"}
+                    </p>
+                    {advice.months !== null ? (
+                      <>
+                        <p className="mt-1 text-lg font-semibold tabular-nums">
+                          {advice.months} months · {money.format(advice.emi)}
+                          <span className="text-sm font-normal"> / month</span>
+                        </p>
+                        <p className="mt-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                          {advice.level === "comfortable"
+                            ? `The shortest plan that keeps your EMI within ${percent(comfortShare)} of your income (it uses ${percent(advice.share)}), so you pay the least interest${recommended ? `: ${money.format(recommended.totalInterest)}` : ""}.`
+                            : `No plan stays within ${percent(comfortShare)} of your income. This one has the lowest monthly payment, at ${percent(advice.share)}. It fits, but leaves less room in your budget.`}
+                        </p>
+                        <button
+                          type="button"
+                          disabled={months === advice.months}
+                          onClick={() => {
+                            setMonths(advice.months as number);
+                            setCustom(false);
+                          }}
+                          className="mt-3 rounded-full bg-zinc-900 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 active:scale-95 disabled:cursor-default disabled:bg-transparent disabled:px-0 disabled:text-emerald-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 dark:focus-visible:ring-offset-zinc-900 dark:disabled:bg-transparent dark:disabled:text-emerald-300"
+                        >
+                          {months === advice.months ? "✓ This plan is selected" : "Use this plan"}
+                        </button>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                        Even the longest plan ({longestTenure} months) needs {money.format(advice.emi)} a month, which
+                        is {percent(advice.share)} of your income.
+                      </p>
+                    )}
+                    {canAddDown && (
+                      <p className="mt-3 border-t border-black/10 pt-3 text-sm leading-relaxed text-zinc-700 dark:border-white/10 dark:text-zinc-300">
+                        Tip: paying {money.format(extraDown)} more upfront makes the {longestTenure}-month plan
+                        comfortable.{" "}
+                        <button
+                          type="button"
+                          onClick={() => setDown(downPayment + extraDown)}
+                          className="rounded font-semibold text-indigo-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-indigo-300"
+                        >
+                          Add it to the down payment
+                        </button>
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {showCompare && !nothingToFinance && (
         <div className="mt-6">
           <h3 className="text-sm font-semibold">Compare plans</h3>
           <div className="mt-2 overflow-x-auto rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-            <table className="w-full min-w-[26rem] text-left text-sm">
+            <table className={cn("w-full text-left text-sm", hasIncome ? "min-w-[34rem]" : "min-w-[26rem]")}>
               <thead className="border-b border-zinc-200 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
                 <tr>
                   <th scope="col" className="px-4 py-2.5 font-medium">
@@ -563,6 +829,11 @@ export function EmiCalculator({
                   <th scope="col" className="px-4 py-2.5 text-right font-medium">
                     Total payable
                   </th>
+                  {hasIncome && (
+                    <th scope="col" className="px-4 py-2.5 text-right font-medium">
+                      Of income
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -585,6 +856,11 @@ export function EmiCalculator({
                         >
                           {plan.months} months
                         </button>
+                        {advice?.months === plan.months && (
+                          <span className="ml-1.5 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase">
+                            Best
+                          </span>
+                        )}
                       </th>
                       <td className="px-4 py-2 text-right font-semibold tabular-nums">{money.format(plan.emi)}</td>
                       <td className="px-4 py-2 text-right text-zinc-600 tabular-nums dark:text-zinc-300">
@@ -593,6 +869,19 @@ export function EmiCalculator({
                       <td className="px-4 py-2 text-right text-zinc-600 tabular-nums dark:text-zinc-300">
                         {money.format(downPayment + plan.totalPayable)}
                       </td>
+                      {hasIncome && (
+                        <td className="px-4 py-2 text-right whitespace-nowrap tabular-nums">
+                          <span
+                            className={cn(
+                              "rounded-full px-2 py-0.5 text-xs font-semibold",
+                              LEVELS[levelFor(plan.emi / income, comfortShare, maxShare)].pill,
+                            )}
+                          >
+                            {percent(plan.emi / income)} ·{" "}
+                            {LEVELS[levelFor(plan.emi / income, comfortShare, maxShare)].label}
+                          </span>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

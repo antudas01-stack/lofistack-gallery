@@ -6,10 +6,42 @@ import { Segmented, Toggle } from "@/components/site/controls";
 import { PlaygroundShell, StateTile } from "@/components/site/playground-shell";
 
 const CURRENCIES = {
-  BDT: { defaultPrice: 85000, minPrice: 5000, maxPrice: 500000, priceStep: 1000, defaultDownPayment: 10000 },
-  USD: { defaultPrice: 1200, minPrice: 100, maxPrice: 10000, priceStep: 50, defaultDownPayment: 200 },
-  INR: { defaultPrice: 60000, minPrice: 5000, maxPrice: 500000, priceStep: 1000, defaultDownPayment: 5000 },
-  EUR: { defaultPrice: 1100, minPrice: 100, maxPrice: 10000, priceStep: 50, defaultDownPayment: 100 },
+  BDT: {
+    defaultPrice: 85000,
+    minPrice: 5000,
+    maxPrice: 500000,
+    priceStep: 1000,
+    defaultDownPayment: 10000,
+    defaultIncome: 50000,
+    maxIncome: 300000,
+  },
+  USD: {
+    defaultPrice: 1200,
+    minPrice: 100,
+    maxPrice: 10000,
+    priceStep: 50,
+    defaultDownPayment: 200,
+    defaultIncome: 3000,
+    maxIncome: 15000,
+  },
+  INR: {
+    defaultPrice: 60000,
+    minPrice: 5000,
+    maxPrice: 500000,
+    priceStep: 1000,
+    defaultDownPayment: 5000,
+    defaultIncome: 45000,
+    maxIncome: 300000,
+  },
+  EUR: {
+    defaultPrice: 1100,
+    minPrice: 100,
+    maxPrice: 10000,
+    priceStep: 50,
+    defaultDownPayment: 100,
+    defaultIncome: 2800,
+    maxIncome: 15000,
+  },
 } as const;
 type Currency = keyof typeof CURRENCIES;
 
@@ -17,6 +49,7 @@ export function EmiCalculatorPlayground() {
   const [currency, setCurrency] = useState<Currency>("BDT");
   const [showCompare, setShowCompare] = useState(true);
   const [showSchedule, setShowSchedule] = useState(true);
+  const [showAffordability, setShowAffordability] = useState(true);
   const [last, setLast] = useState<EmiResult | null>(null);
 
   return (
@@ -30,11 +63,16 @@ export function EmiCalculatorPlayground() {
             {...CURRENCIES[currency]}
             showCompare={showCompare}
             showSchedule={showSchedule}
+            showAffordability={showAffordability}
             onChange={setLast}
           />
           <p className="truncate font-mono text-[11px] text-fg-muted">
             {last
-              ? `onChange → { emi: ${last.emi.toFixed(2)}, totalInterest: ${last.totalInterest.toFixed(2)}, months: ${last.months}, method: "${last.method}" }`
+              ? `onChange → { emi: ${last.emi.toFixed(2)}, months: ${last.months}, totalInterest: ${last.totalInterest.toFixed(2)}${
+                  last.incomeShare === undefined
+                    ? ""
+                    : `, incomeShare: ${last.incomeShare.toFixed(3)}, recommendedMonths: ${last.recommendedMonths}`
+                } }`
               : "Change any value to see the result object."}
           </p>
         </div>
@@ -48,11 +86,13 @@ export function EmiCalculatorPlayground() {
             onChange={setCurrency}
           />
           <div className="flex flex-col gap-1 border-t border-line pt-3">
+            <Toggle label="Find my best plan" checked={showAffordability} onChange={setShowAffordability} />
             <Toggle label="Compare plans table" checked={showCompare} onChange={setShowCompare} />
             <Toggle label="Payment schedule" checked={showSchedule} onChange={setShowSchedule} />
           </div>
           <p className="text-xs leading-relaxed text-fg-muted">
-            Try <span className="font-medium text-fg">Custom</span> for any number of months, set interest to{" "}
+            Change <span className="font-medium text-fg">Monthly income</span> to see the suggested plan move. Try{" "}
+            <span className="font-medium text-fg">Custom</span> for any number of months, set interest to{" "}
             <span className="font-medium text-fg">0%</span>, or switch between{" "}
             <span className="font-medium text-fg">Reducing</span> and <span className="font-medium text-fg">Flat</span>{" "}
             to see how much the method changes the cost.
@@ -85,7 +125,18 @@ function Mini({
 }
 
 export function EmiCalculatorStates() {
-  const compact = { showCompare: false, showSchedule: false } as const;
+  const compact = { showCompare: false, showSchedule: false, showAffordability: false } as const;
+  const advisor = {
+    showCompare: false,
+    showSchedule: false,
+    currency: "BDT",
+    defaultPrice: 120000,
+    minPrice: 5000,
+    maxPrice: 500000,
+    priceStep: 1000,
+    maxIncome: 300000,
+    defaultTenure: 12,
+  } as const;
   return (
     <div className="grid gap-3 lg:grid-cols-2">
       <StateTile label="0% interest plan · 6 months">
@@ -119,6 +170,21 @@ export function EmiCalculatorStates() {
           <EmiCalculator {...compact} defaultPrice={900} defaultDownPayment={900} />
         </Mini>
       </StateTile>
+      <StateTile label="Best plan · comfortable for this income">
+        <Mini width={720} height={830} scale={0.62}>
+          <EmiCalculator {...advisor} title="Income: 80,000" defaultIncome={80000} />
+        </Mini>
+      </StateTile>
+      <StateTile label="Best plan · tight, with a down payment tip">
+        <Mini width={720} height={830} scale={0.62}>
+          <EmiCalculator {...advisor} title="Income: 20,000" defaultIncome={20000} />
+        </Mini>
+      </StateTile>
+      <StateTile label="No plan fits this income">
+        <Mini width={720} height={830} scale={0.62}>
+          <EmiCalculator {...advisor} title="Income: 10,000" defaultIncome={10000} />
+        </Mini>
+      </StateTile>
     </div>
   );
 }
@@ -129,6 +195,7 @@ export function EmiCalculatorCard() {
       <EmiCalculator
         showCompare={false}
         showSchedule={false}
+        showAffordability={false}
         currency="BDT"
         defaultPrice={85000}
         minPrice={5000}

@@ -673,9 +673,9 @@ Input: focusable screen (role="application") with arrows / WASD / 2-4-6-8, Space
     type: "form",
     week: 6,
     addedOn: "2026-11-11",
-    summary: "A buy-now-pay-monthly calculator: price, down payment, interest and any period in, monthly EMI, total cost and a full schedule out.",
+    summary: "A buy-now-pay-monthly calculator that shows the monthly EMI and total cost, then suggests the best plan for the customer's income.",
     description:
-      "A calculator a shop can put next to any product. The customer sets the price, an optional down payment and the yearly interest rate, then picks a plan (3, 6, 12, 18, 24 or 36 months) or types any custom number of months. It instantly shows the monthly EMI, the total interest, and everything they will pay in total, with a donut that splits principal from interest. A compare table shows every plan side by side, a month-by-month schedule shows where each payment goes, and a toggle switches between `reducing` balance (bank-style) and `flat` rate interest. The math is also exported as a plain `calculateEmi()` function.",
+      "A calculator a shop can put next to any product. The customer sets the price, an optional down payment and the yearly interest rate, then picks a plan (3, 6, 12, 18, 24 or 36 months) or types any custom number of months. It instantly shows the monthly EMI, the total interest, and everything they will pay in total, with a donut that splits principal from interest. A **Find my best plan** section takes the customer's monthly income and recommends a plan: the shortest one that keeps the EMI comfortable, so they pay the least interest. It shows a budget meter, marks tight or unaffordable plans, and offers a one-click down payment tip when nothing fits. A compare table shows every plan side by side, a month-by-month schedule shows where each payment goes, and a toggle switches between `reducing` balance (bank-style) and `flat` rate interest. The math is also exported as a plain `calculateEmi()` function.",
     sourcePath: "src/components/gallery/emi-calculator.tsx",
     usage: `import { EmiCalculator, calculateEmi } from "@/components/gallery/emi-calculator";
 
@@ -690,11 +690,15 @@ Input: focusable screen (role="application") with arrows / WASD / 2-4-6-8, Space
   defaultRate={12}
   tenures={[3, 6, 12, 18, 24, 36]}
   defaultTenure={12}
-  onChange={(result) => console.log(result.emi, result.totalPayable)}
+  defaultIncome={50000}     // optional: pre-fill "Find my best plan"
+  comfortShare={0.15}       // EMI up to 15% of income is comfortable
+  maxShare={0.3}            // above 30% is too high
+  onChange={(result) => console.log(result.emi, result.recommendedMonths)}
 />
 
 // Just the math, no UI
-const { emi, totalInterest } = calculateEmi({ principal: 75000, annualRate: 12, months: 12 });`,
+const { emi, totalInterest } = calculateEmi({ principal: 75000, annualRate: 12, months: 12 });
+const advice = advisePlan({ income: 50000, principal: 75000, annualRate: 12, tenures: [3, 6, 12, 18, 24, 36] });`,
     props: [
       { name: "title", type: "string", default: `"EMI calculator"`, description: "Heading and accessible name of the section." },
       { name: "currency / locale", type: "string", default: `"USD" / "en-US"`, description: "ISO currency code and locale used to format every amount." },
@@ -705,10 +709,13 @@ const { emi, totalInterest } = calculateEmi({ principal: 75000, annualRate: 12, 
       { name: "defaultTenure / maxTenure", type: "number", default: "12 / 120", description: "Starting period, and the longest custom period, in months." },
       { name: "defaultMethod", type: `"reducing" | "flat"`, default: `"reducing"`, description: "Reducing: interest on the remaining balance. Flat: interest on the full amount for the whole period." },
       { name: "showCompare / showSchedule", type: "boolean", default: "true", description: "Show the compare-plans table and the month-by-month schedule." },
-      { name: "onChange", type: "(result: EmiResult) => void", description: "Called on every change with price, principal, emi, totalInterest, totalPayable and the schedule." },
+      { name: "showAffordability", type: "boolean", default: "true", description: "Show the Find my best plan section (monthly income, budget meter and suggested plan)." },
+      { name: "defaultIncome / maxIncome", type: "number", default: "0 / maxPrice", description: "Starting monthly income (0 leaves it empty) and the limit of its field and slider." },
+      { name: "comfortShare / maxShare", type: "number", default: "0.15 / 0.3", description: "Share of income that counts as comfortable, and the share above which a plan is too high." },
+      { name: "onChange", type: "(result: EmiResult) => void", description: "Called on every change with emi, totalInterest, totalPayable and the schedule, plus income, incomeShare and recommendedMonths when an income is entered." },
       { name: "className", type: "string", description: "Extra classes for the section." },
     ],
-    states: ["Default", "Typing vs slider (kept in sync)", "Preset plan selected", "Custom period", "0% interest plan", "Reducing vs flat rate", "With down payment", "Nothing to finance", "Schedule open", "Copied summary"],
+    states: ["Default", "Typing vs slider (kept in sync)", "Preset plan selected", "Custom period", "0% interest plan", "Reducing vs flat rate", "With down payment", "Nothing to finance", "Schedule open", "Copied summary", "Best plan: comfortable", "Best plan: tight (with down payment tip)", "No plan fits the income", "No income entered"],
     accessibility: [
       "Every field has a real <label>, and each slider has its own aria-label.",
       "Plans and the interest method are radiogroups with aria-checked.",
@@ -716,6 +723,8 @@ const { emi, totalInterest } = calculateEmi({ principal: 75000, annualRate: 12, 
       "The compare table and the schedule are real tables with column and row headers.",
       "The donut has a text label, and principal and interest are also listed as numbers, not only as colours.",
       "Arrow Up / Down in a field steps the value, and values are clamped to their limits when you leave the field.",
+      "The budget bar is a role=\"meter\" with a spoken value such as “22% of income, tight”.",
+      "Comfortable, Tight and Too high are written as words on every plan, never shown by colour alone.",
     ],
     prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 component called EmiCalculator: a "buy now, pay monthly" installment calculator for product pages.
 
@@ -735,6 +744,8 @@ Build the full schedule (month, payment, principal, interest, balance); the last
 Results panel (dark gradient card): big Monthly EMI, "every month for N", an SVG donut splitting principal and interest with animated stroke-dasharray, and a definition list with amount financed, total interest (+% extra), paid upfront and total you pay. A "Copy summary" button copies a plain-text summary. If the down payment covers the price, show a "Nothing to finance" state.
 
 Below: a Compare plans table (every preset plus the current custom period: EMI, total interest, total payable; clicking a plan selects it) and a collapsible Payment schedule table with a sticky header and scroll.
+
+Find my best plan (affordability advisor): an optional Monthly income field. Export a pure advisePlan({ income, principal, annualRate, tenures, method, comfortShare = 0.15, maxShare = 0.3 }). Rule: recommend the shortest preset plan whose EMI is within comfortShare of income (least interest while comfortable). If none is comfortable, recommend the plan with the lowest EMI as long as it is within maxShare, labelled tight. Otherwise report that no plan fits. When no plan is comfortable, also work out the extra down payment that would make the longest plan comfortable (EMI is linear in the amount financed), rounded up to the price step, and offer a one-click "Add it to the down payment". UI: a three-zone budget meter (green / amber / red with a marker for the selected plan), a status pill (Comfortable / Tight / Too high), a "Best for you" card with the plan, its EMI, the reason in plain words and a "Use this plan" button, and a note that it is a budgeting guide, not financial advice. When an income is entered, the compare table gains an "Of income" column and a Best badge on the suggested plan, and onChange also returns income, incomeShare and recommendedMonths.
 
 Other requirements: format money with Intl.NumberFormat (currency + locale props, narrow symbol, whole amounts without decimals, otherwise 2 decimals). Layout uses a container query so it goes two-column based on its own width, not the viewport. onChange(result) fires on every change. Accessibility: labels, radiogroups, a role=status summary, real tables with scope, and a labelled donut. Light and dark mode. No dependencies.`,
   },
