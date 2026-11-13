@@ -18,6 +18,7 @@ import { FlipInvitationCard, FlipInvitationPlayground, FlipInvitationStates } fr
 import { DayNightMapCard, DayNightMapPlayground, DayNightMapStates } from "./day-night-map-demo";
 import { EmiCalculatorCard, EmiCalculatorPlayground, EmiCalculatorStates } from "./emi-calculator-demo";
 import { PhotoResizerCard, PhotoResizerPlayground, PhotoResizerStates } from "./photo-resizer-demo";
+import { SunCompassCard, SunCompassPlayground, SunCompassStates } from "./sun-compass-demo";
 import { GhostSnakeCard, GhostSnakePlayground, GhostSnakeStates } from "./ghost-snake-demo";
 import { CommandPaletteCard, CommandPalettePlayground, CommandPaletteStates } from "./command-palette-demo";
 import { ReceiptCardCard, ReceiptCardPlayground, ReceiptCardStates } from "./receipt-card-demo";
@@ -59,6 +60,7 @@ const DEMOS: Record<string, Record<DemoView, ComponentType>> = {
   "ghost-snake": { playground: GhostSnakePlayground, states: GhostSnakeStates, card: GhostSnakeCard },
   "emi-calculator": { playground: EmiCalculatorPlayground, states: EmiCalculatorStates, card: EmiCalculatorCard },
   "photo-resizer": { playground: PhotoResizerPlayground, states: PhotoResizerStates, card: PhotoResizerCard },
+  "sun-compass": { playground: SunCompassPlayground, states: SunCompassStates, card: SunCompassCard },
 };
 
 /** Client-side lookup so server pages can render a demo by slug. */

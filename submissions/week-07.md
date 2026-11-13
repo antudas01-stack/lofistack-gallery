@@ -32,7 +32,27 @@ Layout with a container query (two columns when wide). Accessibility: labelled f
 
 ## Post 2 — Component
 
-(Second Week 07 component still to build. `table` is the only unused type.)
+```
+Week: 07
+Type: chart
+Component: Sun Compass
+Live: antu-lofistack-gallery.vercel.app/components/sun-compass
+Repo: github.com/antudas01-stack/lofistack-gallery/blob/main/src/components/gallery/sun-compass.tsx
+Prompt:
+Build a reusable React 19 + TypeScript + Tailwind v4 component called SunCompass: a compass that shows where the sun is right now for any place, its path across the sky today, and where and when it rises and sets. No dependencies.
+
+Maths: compute the sun yourself with the NOAA low-precision formulas (subsolar point from the time, then azimuth clockwise from north and altitude for the observer's latitude and longitude). Export sunPosition(ms, lat, lon) and sunDay(dayStart, lat, lon), which samples the day every 2 minutes and returns sunrise, sunset (altitude crossing -0.833°, interpolated), the highest point and the path. Handle days where the sun never sets or never rises.
+
+Dial (SVG): a sky chart drawn as a compass. The outer ring is the horizon, the centre is straight overhead, with dashed 30° and 60° height rings, tick marks every 10°, and N / E / S / W letters (N in red). Draw today's path as a glowing dotted line with a dot for every hour and a label every 3 hours, amber markers on the rim for sunrise and sunset with their times, the sun as a glowing disc at its current position (dimmed and pinned to the rim when it is below the horizon), and the shadow of a stick at the centre pointing away from the sun, longer when the sun is low. The sky colour changes for day, twilight and night.
+
+Readout next to the dial: the sun's bearing in degrees with a 16-point compass name, its height above or below the horizon, a status line (sunrise in…, …of daylight left, the sun has set), and tiles for sunrise, sunset, highest point, day length, shadow direction and length, and coordinates. All times are shown in the place's own time zone using Intl.DateTimeFormat.
+
+Controls: location chips (props: locations with id, name, latitude, longitude, timeZone; five world cities by default), a My location chip using browser geolocation with loading and error messages, a time-of-day slider with a Now button, and on touch devices a Use phone compass button that asks for motion permission where needed and rotates the dial with the real heading (webkitCompassHeading or absolute alpha), taking the shortest turn.
+
+Props: title, locations, defaultLocationId, date (fixed moment; otherwise a live clock shared through useSyncExternalStore with a null server snapshot so hydration matches), showControls, allowGeolocation, allowDeviceCompass, onChange({ time, azimuth, altitude, sunrise, sunset }), className.
+
+Layout with a container query (dial and readout side by side when wide, stacked on phones). Accessibility: the dial is role=img with a sentence describing the sun's position, every value is also plain text, chips are a radiogroup, the slider has aria-valuetext, errors use role=alert.
+```
 
 ---
 

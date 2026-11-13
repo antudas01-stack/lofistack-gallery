@@ -30,6 +30,7 @@ Every component gets its own page at `/components/<slug>` with:
 | 06 | section | Ghost Snake | [/components/ghost-snake](https://antu-lofistack-gallery.vercel.app/components/ghost-snake) |
 | 06 | form | EMI Calculator | [/components/emi-calculator](https://antu-lofistack-gallery.vercel.app/components/emi-calculator) |
 | 07 | input | Photo Resizer | [/components/photo-resizer](https://antu-lofistack-gallery.vercel.app/components/photo-resizer) |
+| 07 | chart | Sun Compass | [/components/sun-compass](https://antu-lofistack-gallery.vercel.app/components/sun-compass) |
 
 ## Run locally
 

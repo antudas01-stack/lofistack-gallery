@@ -809,6 +809,64 @@ Result card: output size in px, file size, format and the quality actually used 
 
 Layout with a container query (two columns when wide). Accessibility: labelled fields, radiogroups, slider alternatives to dragging, role=alert errors, a role=status announcement of the result, light and dark mode. No dependencies, nothing uploaded to a server.`,
   },
+  {
+    slug: "sun-compass",
+    name: "Sun Compass",
+    type: "chart",
+    week: 7,
+    addedOn: "2026-11-14",
+    summary: "A compass that shows where the sun is right now, its path across the sky today, and where it rises and sets.",
+    description:
+      "A compass dial that doubles as a sky chart: the ring is the horizon and the centre is straight overhead. It plots the sun's direction and height for any place, today's full path with hour marks, sunrise and sunset on the rim, and the shadow a stick would cast. Drag the time slider to move through the day, switch cities, use your own location, or on a phone turn on the real compass so the dial rotates with you. All the solar maths is done in the component, and `sunPosition` and `sunDay` are exported for your own use.",
+    sourcePath: "src/components/gallery/sun-compass.tsx",
+    usage: `import { SunCompass } from "@/components/gallery/sun-compass";
+
+<SunCompass
+  title="Sun compass"
+  locations={[
+    { id: "dhaka", name: "Dhaka", latitude: 23.81, longitude: 90.41, timeZone: "Asia/Dhaka" },
+    { id: "london", name: "London", latitude: 51.51, longitude: -0.13, timeZone: "Europe/London" },
+  ]}
+  defaultLocationId="dhaka"
+  onChange={({ azimuth, altitude, sunrise, sunset }) => {
+    // e.g. tilt a solar panel or warn about glare
+    console.log(azimuth, altitude, sunrise, sunset);
+  }}
+/>`,
+    props: [
+      { name: "title", type: "string", default: `"Sun compass"`, description: "Heading and accessible name of the section." },
+      { name: "locations", type: "{ id; name; latitude; longitude; timeZone }[]", default: "5 world cities", description: "Places the user can switch between. timeZone is an IANA name used to show local times." },
+      { name: "defaultLocationId", type: "string", default: "first location", description: "Place selected at the start." },
+      { name: "date", type: "number | Date", description: "A fixed moment to show. Leave it out for a live clock that updates by itself." },
+      { name: "showControls", type: "boolean", default: "true", description: "Shows the time-of-day slider and the Now button." },
+      { name: "allowGeolocation", type: "boolean", default: "true", description: "Shows the My location button (asks the browser for permission)." },
+      { name: "allowDeviceCompass", type: "boolean", default: "true", description: "On phones, offers to rotate the dial with the device's real compass." },
+      { name: "onChange", type: "(info) => void", description: "Called with { time, azimuth, altitude, sunrise, sunset } whenever the time or place changes." },
+      { name: "className", type: "string", description: "Extra classes for the section." },
+    ],
+    states: ["Live clock", "Fixed date", "Time scrubbed with the slider", "Day", "Twilight", "Night (sun below horizon)", "Southern hemisphere", "Midnight sun (never sets)", "Polar night (never rises)", "Finding my location", "Location denied", "Phone compass on"],
+    accessibility: [
+      "The dial is an image with a text label that says the sun's direction and height in words.",
+      "Every value on the dial is also written as text in the list next to it, so nothing depends on the drawing or on colour.",
+      "Locations are a radiogroup of real buttons; the phone compass button reports aria-pressed.",
+      "The time slider is a native range input with the chosen time as its aria-valuetext.",
+      "Location and compass problems are announced with role=\"alert\".",
+      "The dial only rotates when the user turns on the phone compass; nothing animates by itself.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 component called SunCompass: a compass that shows where the sun is right now for any place, its path across the sky today, and where and when it rises and sets. No dependencies.
+
+Maths: compute the sun yourself with the NOAA low-precision formulas (subsolar point from the time, then azimuth clockwise from north and altitude for the observer's latitude and longitude). Export sunPosition(ms, lat, lon) and sunDay(dayStart, lat, lon), which samples the day every 2 minutes and returns sunrise, sunset (altitude crossing -0.833°, interpolated), the highest point and the path. Handle days where the sun never sets or never rises.
+
+Dial (SVG): a sky chart drawn as a compass. The outer ring is the horizon, the centre is straight overhead, with dashed 30° and 60° height rings, tick marks every 10°, and N / E / S / W letters (N in red). Draw today's path as a glowing dotted line with a dot for every hour and a label every 3 hours, amber markers on the rim for sunrise and sunset with their times, the sun as a glowing disc at its current position (dimmed and pinned to the rim when it is below the horizon), and the shadow of a stick at the centre pointing away from the sun, longer when the sun is low. The sky colour changes for day, twilight and night.
+
+Readout next to the dial: the sun's bearing in degrees with a 16-point compass name, its height above or below the horizon, a status line (sunrise in…, …of daylight left, the sun has set), and tiles for sunrise, sunset, highest point, day length, shadow direction and length, and coordinates. All times are shown in the place's own time zone using Intl.DateTimeFormat.
+
+Controls: location chips (props: locations with id, name, latitude, longitude, timeZone; five world cities by default), a My location chip using browser geolocation with loading and error messages, a time-of-day slider with a Now button, and on touch devices a Use phone compass button that asks for motion permission where needed and rotates the dial with the real heading (webkitCompassHeading or absolute alpha), taking the shortest turn.
+
+Props: title, locations, defaultLocationId, date (fixed moment; otherwise a live clock shared through useSyncExternalStore with a null server snapshot so hydration matches), showControls, allowGeolocation, allowDeviceCompass, onChange({ time, azimuth, altitude, sunrise, sunset }), className.
+
+Layout with a container query (dial and readout side by side when wide, stacked on phones). Accessibility: the dial is role=img with a sentence describing the sun's position, every value is also plain text, chips are a radiogroup, the slider has aria-valuetext, errors use role=alert.`,
+  },
 ];
 
 export function getComponent(slug: string) {
