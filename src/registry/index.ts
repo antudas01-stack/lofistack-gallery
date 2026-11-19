@@ -867,6 +867,58 @@ Props: title, locations, defaultLocationId, date (fixed moment; otherwise a live
 
 Layout with a container query (dial and readout side by side when wide, stacked on phones). Accessibility: the dial is role=img with a sentence describing the sun's position, every value is also plain text, chips are a radiogroup, the slider has aria-valuetext, errors use role=alert.`,
   },
+  {
+    slug: "mood-emoji",
+    name: "Mood Emoji",
+    type: "input",
+    week: 8,
+    addedOn: "2026-11-19",
+    summary: "Type how you feel in your own words and get a custom emoji drawn for that exact mood.",
+    description:
+      "A mood input that reads plain sentences like \"tired but happy\" and draws a face for them. The emoji is not picked from a list: the smile, eyes, eyebrows, colour and extras (tears, sweat, zzz, hearts, sparkles) are numbers blended from every feeling word found, so mixed moods get their own face. It understands `not`, strength words like `very` and `a bit`, and extra vocabulary you pass in. Everything runs in the browser with no AI service, and the result can be downloaded or copied as a PNG. `readMood` is exported for use without the UI.",
+    sourcePath: "src/components/gallery/mood-emoji.tsx",
+    usage: `import { MoodEmoji } from "@/components/gallery/mood-emoji";
+
+<MoodEmoji
+  question="How are you feeling?"
+  examples={["tired but happy", "so stressed about exams"]}
+  extraWords={{ khushi: "happy", klanto: "tired" }}
+  onChange={({ label, moods, valence, energy }) => {
+    // e.g. save today's mood to a journal
+    console.log(label, moods, valence, energy);
+  }}
+/>`,
+    props: [
+      { name: "title", type: "string", default: `"Mood emoji"`, description: "Small heading and accessible name of the section." },
+      { name: "question", type: "string", default: `"How are you feeling?"`, description: "The question shown as the label of the text box." },
+      { name: "placeholder", type: "string", default: `"e.g. tired but happy today"`, description: "Placeholder of the text box." },
+      { name: "defaultText", type: "string", default: `""`, description: "Text to start with." },
+      { name: "examples", type: "string[]", default: "5 sentences", description: "One-tap example sentences. Pass [] to hide them." },
+      { name: "extraWords", type: "Record<string, MoodId>", description: "Extra vocabulary mapped to one of the 23 moods, for slang or another language." },
+      { name: "showMeters", type: "boolean", default: "true", description: "Shows the Mood and Energy bars under the face." },
+      { name: "showActions", type: "boolean", default: "true", description: "Shows the Download PNG and Copy image buttons." },
+      { name: "onChange", type: "(reading) => void", description: "Called with { text, moods, label, valence, energy, face } whenever the text changes." },
+      { name: "className", type: "string", description: "Extra classes for the section." },
+    ],
+    states: ["Empty (waiting)", "One feeling", "Mixed feelings (and / but)", "Strong (very, super, !!)", "Soft (a bit, slightly)", "Negated (not okay)", "No feeling word found", "Example selected", "Downloaded", "Copied", "Copy not allowed"],
+    accessibility: [
+      "The question is a real label for the text box, and the list of found words is linked to it with aria-describedby.",
+      "The emoji is an image with a text name such as \"Emoji: Tired but happy\".",
+      "The mood name is a role=\"status\" region, so screen readers hear the result as the person types.",
+      "Mood and energy are written in words next to the bars, not shown by position or colour alone.",
+      "Example chips are real buttons with aria-pressed, and all buttons have visible focus rings.",
+      "The idle bobbing, blinking and morphing stop when reduced motion is turned on.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 component called MoodEmoji with no dependencies and no AI service. The person types how they feel in their own words (for example "tired but happy today") and a custom emoji is drawn for that mood as they type.
+
+Reading the text: export a pure function readMood(text, extraWords?). Split the text into words (Unicode letters), remove common endings (stressed → stress, happily → happy) and look each word up in a built-in dictionary of 23 moods (happy, excited, calm, in love, proud, grateful, okay, silly, sad, heartbroken, lonely, tired, bored, stressed, anxious, angry, annoyed, scared, surprised, sick, confused, hungry, shy), each with synonyms, a valence, an energy value and an opposite. Look at the three words before each match: "not / never / n't" switches to the opposite mood, "very / so / really / super" makes it stronger, "a bit / slightly / kinda" makes it weaker, and two or more exclamation marks add strength. Stop looking back at "but / and" or at another feeling word. Return { text, moods, label, valence, energy, face }, where label is a readable name like "Tired but happy" ("but" when the feelings pull in opposite directions, otherwise "and"; "Very …" or "A bit …" for a single feeling).
+
+The face: do not pick from a list of emojis. Describe the face with numbers (smile, mouth open, eye openness, happy curved eyes, eyebrow angle, head tilt, wavy mouth, face colour, and extras: tears, sweat, zzz, heart eyes, blush, sparkles, tongue). Each mood has its own values; blend them by weight so mixed moods get their own face, and take the maximum for extras. Draw it as an SVG with a gradient face, and glide from the old face to the new one with requestAnimationFrame (with a timer fallback for background tabs). Add gentle idle bobbing and blinking, all turned off for reduced motion.
+
+UI: a large question as the label of a text box, chips showing the feeling words that were found (including "not okay → sad" and strong / a bit), one-tap example sentences, the emoji on a panel tinted with the face colour, its name, Mood and Energy bars with words, and Download PNG and Copy image buttons (serialize the SVG to a 512 px canvas). Show a friendly unsure face and a hint when no feeling word is found.
+
+Props: title, question, placeholder, defaultText, examples, extraWords (extra vocabulary such as { khushi: "happy" }), showMeters, showActions, onChange(reading), className. Layout with a container query, light and dark mode, labelled input, role=img emoji with a text name, and a role=status result.`,
+  },
 ];
 
 export function getComponent(slug: string) {
