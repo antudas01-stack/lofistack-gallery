@@ -20,6 +20,7 @@ import { EmiCalculatorCard, EmiCalculatorPlayground, EmiCalculatorStates } from 
 import { PhotoResizerCard, PhotoResizerPlayground, PhotoResizerStates } from "./photo-resizer-demo";
 import { SunCompassCard, SunCompassPlayground, SunCompassStates } from "./sun-compass-demo";
 import { MoodEmojiCard, MoodEmojiPlayground, MoodEmojiStates } from "./mood-emoji-demo";
+import { StudyRoutineCard, StudyRoutinePlayground, StudyRoutineStates } from "./study-routine-demo";
 import { GhostSnakeCard, GhostSnakePlayground, GhostSnakeStates } from "./ghost-snake-demo";
 import { CommandPaletteCard, CommandPalettePlayground, CommandPaletteStates } from "./command-palette-demo";
 import { ReceiptCardCard, ReceiptCardPlayground, ReceiptCardStates } from "./receipt-card-demo";
@@ -63,6 +64,7 @@ const DEMOS: Record<string, Record<DemoView, ComponentType>> = {
   "photo-resizer": { playground: PhotoResizerPlayground, states: PhotoResizerStates, card: PhotoResizerCard },
   "sun-compass": { playground: SunCompassPlayground, states: SunCompassStates, card: SunCompassCard },
   "mood-emoji": { playground: MoodEmojiPlayground, states: MoodEmojiStates, card: MoodEmojiCard },
+  "study-routine": { playground: StudyRoutinePlayground, states: StudyRoutineStates, card: StudyRoutineCard },
 };
 
 /** Client-side lookup so server pages can render a demo by slug. */

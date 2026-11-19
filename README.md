@@ -32,6 +32,7 @@ Every component gets its own page at `/components/<slug>` with:
 | 07 | input | Photo Resizer | [/components/photo-resizer](https://antu-lofistack-gallery.vercel.app/components/photo-resizer) |
 | 07 | chart | Sun Compass | [/components/sun-compass](https://antu-lofistack-gallery.vercel.app/components/sun-compass) |
 | 08 | input | Mood Emoji | [/components/mood-emoji](https://antu-lofistack-gallery.vercel.app/components/mood-emoji) |
+| 08 | table | Study Routine | [/components/study-routine](https://antu-lofistack-gallery.vercel.app/components/study-routine) |
 
 ## Run locally
 

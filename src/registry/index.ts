@@ -919,6 +919,64 @@ UI: a large question as the label of a text box, chips showing the feeling words
 
 Props: title, question, placeholder, defaultText, examples, extraWords (extra vocabulary such as { khushi: "happy" }), showMeters, showActions, onChange(reading), className. Layout with a container query, light and dark mode, labelled input, role=img emoji with a text name, and a role=status result.`,
   },
+  {
+    slug: "study-routine",
+    name: "Study Routine",
+    type: "table",
+    week: 8,
+    addedOn: "2026-11-19",
+    summary: "Add your subjects, set a fixed study time and pick your study days, and get a weekly routine table.",
+    description:
+      "A routine maker for students. Add your subjects and mark each one easy, normal or hard, set your fixed daily study time (for example 6:00 PM to 10:00 PM), choose the session and break length, and tap which days are study days and which are free. The weekly timetable is built straight away: every subject gets at least one session, hard subjects get more, a subject is spread over different days, and the hardest ones come first in the evening. Shuffle gives another arrangement, and the routine can be copied as text or downloaded as a picture. `buildRoutine` is exported for use without the UI.",
+    sourcePath: "src/components/gallery/study-routine.tsx",
+    usage: `import { StudyRoutine } from "@/components/gallery/study-routine";
+
+<StudyRoutine
+  title="Study routine"
+  defaultSubjects={["Bangla", "English", { name: "Math", level: "hard" }, "Science", "BGS", "ICT"]}
+  defaultStart="18:00"
+  defaultEnd="22:00"
+  defaultStudyDays={["sat", "sun", "mon", "tue", "wed", "thu"]}
+  onChange={(routine) => {
+    // e.g. save the routine to the student's profile
+    console.log(routine.days, routine.totals);
+  }}
+/>`,
+    props: [
+      { name: "title", type: "string", default: `"Study routine"`, description: "Heading, accessible name, and title of the downloaded picture." },
+      { name: "defaultSubjects", type: "(string | { name; level? })[]", default: "6 school subjects", description: "Subjects to start with. level is \"easy\", \"normal\" or \"hard\"." },
+      { name: "defaultStart", type: "string (HH:MM)", default: `"18:00"`, description: "Start of the daily study time, in 24-hour form." },
+      { name: "defaultEnd", type: "string (HH:MM)", default: `"22:00"`, description: "End of the daily study time. It may pass midnight, e.g. 22:00 to 01:00." },
+      { name: "defaultSessionMinutes", type: "number", default: "50", description: "Length of one study session." },
+      { name: "defaultBreakMinutes", type: "number", default: "10", description: "Break after each session." },
+      { name: "defaultStudyDays", type: "StudyDay[]", default: "Sat to Thu", description: "Days that start as study days. The others are free days." },
+      { name: "weekStart", type: "StudyDay", default: `"sat"`, description: "First column of the week." },
+      { name: "hardFirst", type: "boolean", default: "true", description: "Puts the hardest subjects first each day, while the mind is fresh." },
+      { name: "maxSubjects", type: "number", default: "12", description: "Most subjects that can be added." },
+      { name: "onChange", type: "(routine) => void", description: "Called with { problem, slots, days, totals, leftOut, sessionsPerWeek, minutesPerWeek } on every change." },
+      { name: "className", type: "string", description: "Extra classes for the section." },
+    ],
+    states: ["Routine ready", "No subjects yet", "Subject added / removed", "Duplicate subject", "Subject limit reached", "Free day column", "No study days picked", "Study time shorter than a session", "Study time past midnight", "Not enough time for every subject", "Shuffled", "Copied / downloaded"],
+    accessibility: [
+      "The routine is a real table with a caption, column headers for days and row headers for times.",
+      "Subject cells always show the subject name, so colour is never the only signal.",
+      "Day buttons report aria-pressed and are named in full, for example \"Friday: free day\".",
+      "Every field has a label, and each difficulty menu and remove button names its subject.",
+      "Problems and warnings use role=\"alert\"; added, removed, copied and saved messages use role=\"status\".",
+      "On small screens the table scrolls sideways inside a focusable, labelled region and the time column stays in place.",
+    ],
+    prompt: `Build a reusable React 19 + TypeScript + Tailwind v4 component called StudyRoutine with no dependencies: a weekly study routine maker for students.
+
+Step 1, subjects: a text box with an Add button (Enter also adds). Each subject is listed with its own colour, a difficulty menu (Easy / Normal / Hard) and a remove button. Reject empty and duplicate names and stop at maxSubjects.
+Step 2, study time: From and To time fields for the student's fixed daily study time (default 6:00 PM to 10:00 PM; the end may pass midnight), a session length menu (30 to 90 minutes) and a break menu (0 to 15 minutes). Show how many sessions fit in a day and when the last one ends.
+Step 3, days: seven day buttons (week starts on Saturday by default) that switch between Study and Free. Friday is free by default.
+
+Making the routine: export a pure function buildRoutine(options). Work out the sessions per day from the study time, session length and break. Give every subject at least one session, then share the remaining sessions by difficulty (weights 1 / 2 / 3). Spread each subject over different days, put the hardest subjects first each day, and avoid the same subject twice in a row. A seed changes the arrangement for a Shuffle button. Return problems in plain words: no subjects, no study days, study time shorter than one session, more than 12 hours, and list any subjects left out when there is not enough time.
+
+Output: a real table (rows are session times, columns are the seven days) with coloured subject cells, a Free day column for free days, a sticky time column and sideways scrolling on phones. Under it, show sessions and hours per subject for the week. Add Shuffle, Copy as text and Download picture (draw the table on a canvas and save a PNG).
+
+Props: title, defaultSubjects, defaultStart, defaultEnd, defaultSessionMinutes, defaultBreakMinutes, defaultStudyDays, weekStart, hardFirst, maxSubjects, onChange(routine), className. The routine updates live on every change. Use a container query for the layout, support light and dark mode, label every field, use table caption and scoped headers, aria-pressed day buttons, role=alert for problems and role=status for confirmations.`,
+  },
 ];
 
 export function getComponent(slug: string) {

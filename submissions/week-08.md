@@ -28,7 +28,25 @@ Props: title, question, placeholder, defaultText, examples, extraWords (extra vo
 
 ## Post 2 — Component
 
-(Second Week 08 component still to build. `table` is the only unused type.)
+```
+Week: 08
+Type: table
+Component: Study Routine
+Live: antu-lofistack-gallery.vercel.app/components/study-routine
+Repo: github.com/antudas01-stack/lofistack-gallery/blob/main/src/components/gallery/study-routine.tsx
+Prompt:
+Build a reusable React 19 + TypeScript + Tailwind v4 component called StudyRoutine with no dependencies: a weekly study routine maker for students.
+
+Step 1, subjects: a text box with an Add button (Enter also adds). Each subject is listed with its own colour, a difficulty menu (Easy / Normal / Hard) and a remove button. Reject empty and duplicate names and stop at maxSubjects.
+Step 2, study time: From and To time fields for the student's fixed daily study time (default 6:00 PM to 10:00 PM; the end may pass midnight), a session length menu (30 to 90 minutes) and a break menu (0 to 15 minutes). Show how many sessions fit in a day and when the last one ends.
+Step 3, days: seven day buttons (week starts on Saturday by default) that switch between Study and Free. Friday is free by default.
+
+Making the routine: export a pure function buildRoutine(options). Work out the sessions per day from the study time, session length and break. Give every subject at least one session, then share the remaining sessions by difficulty (weights 1 / 2 / 3). Spread each subject over different days, put the hardest subjects first each day, and avoid the same subject twice in a row. A seed changes the arrangement for a Shuffle button. Return problems in plain words: no subjects, no study days, study time shorter than one session, more than 12 hours, and list any subjects left out when there is not enough time.
+
+Output: a real table (rows are session times, columns are the seven days) with coloured subject cells, a Free day column for free days, a sticky time column and sideways scrolling on phones. Under it, show sessions and hours per subject for the week. Add Shuffle, Copy as text and Download picture (draw the table on a canvas and save a PNG).
+
+Props: title, defaultSubjects, defaultStart, defaultEnd, defaultSessionMinutes, defaultBreakMinutes, defaultStudyDays, weekStart, hardFirst, maxSubjects, onChange(routine), className. The routine updates live on every change. Use a container query for the layout, support light and dark mode, label every field, use table caption and scoped headers, aria-pressed day buttons, role=alert for problems and role=status for confirmations.
+```
 
 ---
 
